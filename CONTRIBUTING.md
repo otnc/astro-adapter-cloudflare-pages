@@ -113,6 +113,8 @@ Releasing is one manual step.
 From the Actions tab, run the `release` workflow (`workflow_dispatch`) and give it a `version` input — either a bump keyword (`patch` / `minor` / `major` / `prerelease`) or an explicit version like `0.1.0`.
 The workflow runs the checks and build, bumps `package.json`, publishes to npm with provenance via **trusted publishing** (OIDC — no `NPM_TOKEN` needed), pushes the version commit and tag, and creates a GitHub Release with generated notes.
 
+`main` is protected by a repository ruleset (pull request with squash merge, passing CI and PR title checks, no force pushes or deletion). Only a dedicated GitHub App may bypass it, so the workflow pushes the version commit with that app's token. The app needs **Contents: Read and write** on this repository only, its client ID in the `RELEASE_APP_CLIENT_ID` Actions variable, and its private key in the `RELEASE_APP_PRIVATE_KEY` Actions secret.
+
 Trusted publishing must be configured once on npmjs.com: package **Settings → Publishing access → Trusted publishers → GitHub**, pointing at this repository's `release.yml` workflow.
 
 ## License
