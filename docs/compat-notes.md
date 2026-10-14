@@ -8,8 +8,8 @@ The e2e tests (`npm run test:e2e`) install the packed adapter into an isolated p
 
 | Astro | Wrangler | Fixture | Result | Date |
 | --- | --- | --- | --- | --- |
-| 6.4.8 | 4.151.0 | `basic`, `hybrid` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
-| 7.3.8 | 4.151.0 | `basic`, `hybrid`, `advanced` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
+| 6.4.8 | 4.151.0 | `basic`, `hybrid`, `images`, `images-cloudflare` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
+| 7.3.8 | 4.151.0 | `basic`, `hybrid`, `advanced`, `images`, `images-cloudflare` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
 
 The `hybrid` fixture covers static output with on-demand pages and i18n routing, and the `advanced` fixture covers Advanced Routing with `src/fetch.ts` (Astro 7 only). The `basic` fixture covers middleware, actions, server islands, a prerendered page, an on-demand page, a dynamic route, an API endpoint, a prerendered 404 page, a public file, static and dynamic redirects, `astro:env` secrets, cookies, the client address, `Astro.locals.runtime` and `Astro.locals.cfContext`, and sessions in KV. It is not deployed to a real Pages project by CI; a real deployment is a manual release check.
 
@@ -29,9 +29,12 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | --- | --- | --- | --- |
 | 6 | `astro:env` validates secrets while server modules load, before the first request. Setting `getEnv` per request fails with `EnvInvalidVariables`. | The server entrypoint calls `setGetEnv` at module scope with `env` from `cloudflare:workers`. | `basic` (`/env`) |
 | 6 | Server islands are emitted as separate chunks that only re-export from `../index.js`, and the entry exports internal bindings for them. Wrangler cannot resolve the chunk when it re-bundles `_worker.js/`, and workerd rejects the extra named exports as handlers. | The server build disables code splitting (`compat.bundleServerAsOneModule`), and `astro:build:done` folds such re-export-only chunks back into the entry and drops the extra exports. | `basic` (`/island`) |
+| 6 | Astro rebuilds the `prerender` and `ssr` environment configs from scratch, so options passed through `updateConfig` for those environments are lost. | The adapter changes them in `astro:build:setup`, which receives the final config. | `basic`, `images-cloudflare` |
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- Prerendering runs in a separate Vite environment (`prerender`) in Node.js, and it loads packages from `node_modules` without bundling unless they are listed in `resolve.noExternal`. The adapter bundles itself there, so its image service gets `import.meta.env.BASE_URL`. Swapping sharp for the no-op service only in the `ssr` environment lets prerendered pages keep sharp optimization (`imageService: "compile"`, as v12 did) (2026-10-15).
 
 - Without a `404.html`, Pages answers any unknown path with `index.html` and status 200. The v12 handler fell back to the static files for every unmatched request, so such sites showed the home page instead of a 404, and a custom `src/fetch.ts` never saw the request. The adapter now falls back to the static files only for prerendered routes and `.html` URLs (2026-10-15).
 

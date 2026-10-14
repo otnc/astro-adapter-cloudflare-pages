@@ -11,7 +11,8 @@
 | `Invalid binding SESSION` | Sessions default to the KV binding `SESSION`, which does not exist | Add a KV namespace bound as `SESSION`, set `sessionKVBindingName`, or configure another `session.driver`. |
 | `passThroughOnException is not available in Cloudflare Pages Functions` | Code calls `Astro.locals.runtime.ctx.passThroughOnException()` | Pages does not support it. Remove the call and handle errors in the page or middleware. |
 | `Cannot find module 'cloudflare:workers'` during build or in `astro dev` | A prerendered page or dev-time code imports `cloudflare:*` | Read bindings from `Astro.locals.runtime.env` in on-demand pages. |
-| Images are not resized | The adapter replaces sharp with the passthrough image service | Expected. Configure another `image.service` if resizing is required. |
+| Images of on-demand pages are not resized | sharp cannot run on Cloudflare, so the default `imageService: "compile"` optimizes only prerendered pages | Expected. Use `imageService: "cloudflare"` with Image Transformations enabled on the zone, or prerender the page. |
+| `/cdn-cgi/image/...` URLs return errors | `imageService: "cloudflare"` needs Image Transformations enabled on the zone, and they do not run in `wrangler pages dev` | Enable Image Transformations, or use `"compile"`. |
 | Cookies are not set on responses | The response was created outside Astro's rendering, for example in a custom handler | Set cookies with `Astro.cookies`; the adapter adds them to responses that Astro renders. |
 | Build fails with "tested with Astro 6, 7" | An untested Astro major is installed | Use a supported Astro version, update the adapter, or set `unsafe: { allowUntestedAstro: true }` knowingly. |
 | Server islands fail with `Could not resolve "../index.js"` or `Incorrect type for map entry` | An adapter version before the fix for Astro 6 server island chunks | Update the adapter. It now builds the Worker as one module. |
