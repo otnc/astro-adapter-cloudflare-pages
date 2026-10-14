@@ -1,6 +1,6 @@
 # astro-adapter-cloudflare-pages
 
-> Astro adapter for deploying on-demand rendered sites to Cloudflare Pages (Astro 6, 7 and later)
+> Astro adapter for deploying on-demand rendered sites to Cloudflare Pages (Astro 6, 7 or later)
 
 [![npm](https://img.shields.io/npm/v/astro-adapter-cloudflare-pages)](https://www.npmjs.com/package/astro-adapter-cloudflare-pages)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/otnc/astro-adapter-cloudflare-pages/ci.yml?branch=main)](https://github.com/otnc/astro-adapter-cloudflare-pages/actions)
@@ -60,10 +60,16 @@ A minimal Wrangler config for a Pages project:
 
 ## Deploy
 
+Create the Pages project once, then deploy the build:
+
 ```sh
+npx wrangler pages project create my-site --production-branch main --force
 npx astro build
 npx wrangler pages deploy dist
 ```
+
+> [!WARNING]
+> Since Wrangler 4.151, `wrangler pages project create` without `--force` does not create a Pages project. It switches to Cloudflare Workers instead and rewrites the project in the current directory (it installs `@astrojs/cloudflare`, edits `package.json` and `tsconfig.json`, and creates a Workers `wrangler.jsonc`). Keep `--force` to create a classic Pages project, or create the project in the Cloudflare dashboard. Deploying to an existing Pages project with `wrangler pages deploy` is not affected.
 
 You can also connect the repository to Cloudflare Pages with the build command `npx astro build` and the output directory `dist`. The build output is plain files (`dist/_worker.js/`, `_routes.json`, `_redirects` and static assets), so any tool that uploads a Pages directory works.
 
