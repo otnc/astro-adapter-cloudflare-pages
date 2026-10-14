@@ -24,6 +24,7 @@ Dependabot opens weekly update pull requests for npm packages and GitHub Actions
 | `npm run test` | Run the unit tests once with vitest (`npm run test:watch` to keep them running) |
 | `npm run test:e2e` | Build, pack the adapter, install it into an isolated project per Astro major (`ASTRO_MAJORS`, default `6,7`), build `test/fixtures/*` and check the responses from `wrangler pages dev` |
 | `npm run check:skills` | Validate the skills in `skills/` (frontmatter, the `skills init` sections, and the skills CLI listing) |
+| `npm run check:package` | Check the built package with publint and Are the Types Wrong (`exports`, `types`, ESM-only resolution). Run `npm run build` first. |
 | `npm run test:coverage` | Run the unit tests with a coverage report |
 | `npm run typecheck` | Type-check with `tsc --noEmit` |
 | `npm run format` | Format the code, writing the fixes (Prettier) |
