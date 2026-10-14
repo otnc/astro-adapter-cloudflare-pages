@@ -35,12 +35,12 @@ Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cl
    | `routes.extend` | Same shape |
    | `platformProxy` | `enabled`, `configPath`, `environment`, `persist` are supported |
    | `sessionKVBindingName` | Same |
-   | `imageService` | Not supported. sharp is replaced with passthrough; set `image.service` for other services. |
+   | `imageService` | Same values: `"compile"` (default), `"passthrough"`, `"cloudflare"`, `"custom"` |
    | `cloudflareModules`, `workerEntryPoint` | Not supported. Remove them and tell the user what they did. |
 
 6. Keep code that uses `Astro.locals.runtime`: `env`, `cf`, `caches` and `ctx` have the same shape as in v12, and `Astro.locals.cfContext` is also available.
 7. Keep `public/_routes.json` and `public/_redirects` if they exist. The adapter keeps an existing `_routes.json` and appends Astro's static redirects to `_redirects`.
 8. Change the type in `src/env.d.ts` to `import("astro-adapter-cloudflare-pages").Runtime<Env>`.
-9. Move code that imports `cloudflare:*` out of prerendered pages: prerendering runs in Node.js. Tell the user that images are no longer resized, because sharp is replaced with passthrough.
+9. Move code that imports `cloudflare:*` out of prerendered pages: prerendering runs in Node.js. Keep the v12 `imageService` value; the default is `"compile"` in both.
 10. Verify with `npx astro build` and `npx wrangler pages dev dist`, comparing a dynamic page, a static page, a redirect and the 404 page with the current deployment.
 11. Ask the user before deploying, and before creating or changing any Cloudflare resource.

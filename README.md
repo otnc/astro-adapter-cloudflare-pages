@@ -109,7 +109,16 @@ When `session.driver` is not set, the adapter stores [Astro sessions](https://do
 
 ## Images
 
-Cloudflare Pages cannot run sharp, which is Astro's default image service. The adapter switches it to the passthrough service, so images are served without optimization. Configure another `image.service` if you need resizing.
+Cloudflare Pages cannot run sharp, Astro's default image service. Choose how images are handled with the `imageService` option:
+
+| Value | Prerendered pages | On-demand pages |
+| --- | --- | --- |
+| `"compile"` (default) | Optimized with sharp at build time | Served unchanged |
+| `"passthrough"` | Served unchanged | Served unchanged |
+| `"cloudflare"` | Resized by [Cloudflare Images transformations](https://developers.cloudflare.com/images/transform-images/) (`/cdn-cgi/image/...`), which must be enabled on your zone | Same |
+| `"custom"` | Your `image.service` | Your `image.service` |
+
+If you configure an `image.service` other than sharp, the adapter keeps it. `astro dev` always resizes with sharp, except with `"passthrough"` and `"custom"`.
 
 ## Options
 
@@ -122,6 +131,7 @@ Cloudflare Pages cannot run sharp, which is Astro's default image service. The a
 | `platformProxy.environment` | None | Named environment in the Wrangler config |
 | `platformProxy.persist` | Wrangler's default | Where to keep local binding data, or `false` |
 | `sessionKVBindingName` | `"SESSION"` | KV binding for the default session driver |
+| `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
 | `tool` | `"auto"` | `"wrangler"` or `"cf"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists. |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
 
@@ -145,7 +155,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | i18n routing | Tested |
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
-| Image optimization | Not supported (passthrough only) |
+| Image optimization (`compile` and `cloudflare` image services) | Tested |
 | `cf` CLI | Detected from `cloudflare.config.*`, but it cannot deploy to Pages and has no local runtime API yet; `astro dev` uses Wrangler |
 
 ## Known limitations
