@@ -67,7 +67,7 @@ npx wrangler pages deploy dist
 
 You can also connect the repository to Cloudflare Pages with the build command `npx astro build` and the output directory `dist`. The build output is plain files (`dist/_worker.js/`, `_routes.json`, `_redirects` and static assets), so any tool that uploads a Pages directory works.
 
-The [`cf` CLI](https://www.npmjs.com/package/cf), which is expected to replace Wrangler, has a `cf pages deploy [directory]` command. Deploying this adapter's output with it has not been verified yet; see [docs/cf-notes.md](./docs/cf-notes.md).
+The [`cf` CLI](https://www.npmjs.com/package/cf), which is expected to replace Wrangler, does not deploy to Cloudflare Pages: its `cf pages deploy` command only points back to `wrangler pages deploy` or to Workers. Use Wrangler or the Pages Git integration. See [docs/cf-notes.md](./docs/cf-notes.md) for the details and the plan if Wrangler goes away.
 
 ## Use Cloudflare APIs
 
@@ -144,7 +144,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | i18n routing | Untested |
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Untested |
 | Image optimization | Not supported (passthrough only) |
-| `cf` CLI local runtime | Not available yet; `astro dev` uses Wrangler |
+| `cf` CLI | Detected from `cloudflare.config.*`, but it cannot deploy to Pages and has no local runtime API yet; `astro dev` uses Wrangler |
 
 ## Known limitations
 

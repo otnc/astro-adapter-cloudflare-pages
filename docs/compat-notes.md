@@ -21,7 +21,7 @@ The `basic` fixture covers a prerendered page, an on-demand page, a dynamic rout
 | 2 | How does the Astro 7 Advanced Routing entrypoint (`src/fetch.ts`) combine with a Pages `_worker.js` bundle? | Open. Not covered by a fixture yet. |
 | 3 | Does Pages accept the bundle that Astro 6 and 7 produce (module format, size, `cloudflare:*` imports, Node.js compatibility flags)? | Answered for `wrangler pages dev`: yes, as one ES module of about 650 KB for the basic fixture, without `nodejs_compat`. Confirm on a real deployment before each release. |
 | 4 | How can prerendering run in workerd without the official adapter, or should it fall back to Node.js prerendering? | Answered: prerendering uses Astro's default Node.js prerenderer. Prerendered pages therefore cannot import `cloudflare:*` modules. |
-| 5 | Can the `cf` CLI deploy to Pages, which config file does it read, and does it have a programmatic local runtime API? | Partly answered, see [cf-notes.md](./cf-notes.md). |
+| 5 | Can the `cf` CLI deploy to Pages, which config file does it read, and does it have a programmatic local runtime API? | Answered for 1.0.0-beta.17: no Pages deployment, `cloudflare.config.ts` describes Workers only, and no local runtime API. See [cf-notes.md](./cf-notes.md) (2026-10-15). |
 
 ## Adapter API differences by Astro version
 
