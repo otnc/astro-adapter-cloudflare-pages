@@ -2,3 +2,7 @@
 * text=auto eol=lf
 
 .agents/skills/** linguist-vendored
+
+# Linguist treats test/fixtures/ as vendored and Astro as markup, so neither counts toward the language bar by default.
+test/fixtures/** linguist-vendored=false
+*.astro linguist-detectable

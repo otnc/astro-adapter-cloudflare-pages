@@ -1,0 +1,7 @@
+# gitleaks config: the default rules, plus the paths to skip.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Third-party agent skills, which contain fake tokens in their examples"
+paths = ['''^\.agents/skills/''']

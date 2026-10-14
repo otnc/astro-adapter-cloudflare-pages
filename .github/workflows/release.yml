@@ -17,43 +17,50 @@ permissions:
   contents: write # push the version commit/tag and create the GitHub Release
   id-token: write # npm trusted publishing (OIDC)
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       # Only this GitHub App may bypass the main ruleset (pull request and status check rules), so the version commit is pushed with its token.
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run ci
       - run: npm run typecheck
       - run: npm run test
-      - run: npm run build
+      - run: npm run test:e2e
+        env:
+          ASTRO_MAJORS: "6,7"
 
       - name: Bump version
         id: bump
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+          DIST_TAG_INPUT: ${{ inputs.dist_tag }}
         run: |
           OLD="$(node -p "require('./package.json').version")"
-          npm version "${{ inputs.version }}" --no-git-tag-version --allow-same-version >/dev/null
+          npm version "$VERSION_INPUT" --no-git-tag-version --allow-same-version >/dev/null
           NEW="$(node -p "require('./package.json').version")"
           echo "version=v${NEW}" >> "$GITHUB_OUTPUT"
           if [ "$OLD" = "$NEW" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Version is already ${NEW}; skipping the bump commit but still releasing."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Version is already ${NEW}; skipping the bump but still releasing."
           fi
 
           if [[ "$NEW" == *-* ]]; then
@@ -63,12 +70,31 @@ jobs:
             PRERELEASE_ID=""
           fi
 
-          TAG="${{ inputs.dist_tag }}"
+          TAG="$DIST_TAG_INPUT"
           if [ -z "$TAG" ]; then
             if [ -n "$PRERELEASE_ID" ]; then TAG="$PRERELEASE_ID"; else TAG="latest"; fi
           fi
           echo "npm_tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "prerelease=$([ "$TAG" = "latest" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+      # The build runs after the bump so dist matches the published version.
+      - run: npm run build
+
+      # CHANGELOG.md is rebuilt from the commit history (cliff.toml) with the new version as the latest release, and the same section becomes the GitHub Release notes.
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff.toml
+          args: --tag ${{ steps.bump.outputs.version }}
+        env:
+          OUTPUT: CHANGELOG.md
+      - name: Generate release notes
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff.toml
+          args: --unreleased --strip all --tag ${{ steps.bump.outputs.version }}
+        env:
+          OUTPUT: RELEASE_NOTES.md
 
       # Trusted publishing: no NODE_AUTH_TOKEN, because npm exchanges the OIDC token issued by GitHub for a short-lived publish credential.
       - run: npm install -g npm@11
@@ -78,24 +104,33 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          VERSION: ${{ steps.bump.outputs.version }}
         run: |
           BOT_ID="$(gh api "users/${APP_SLUG}%5Bbot%5D" --jq .id)"
           git config user.name "${APP_SLUG}[bot]"
           git config user.email "${BOT_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
-          # Only commit when the bump actually changed package.json; otherwise just tag and release.
-          if [ "${{ steps.bump.outputs.changed }}" = "true" ]; then
-            git commit -am "release: ${{ steps.bump.outputs.version }}"
+          # Only commit when the bump or the regenerated changelog changed something; otherwise just tag and release.
+          git add package.json package-lock.json CHANGELOG.md
+          if ! git diff --cached --quiet; then
+            git commit -m "release: ${VERSION}"
           fi
-          if ! git rev-parse -q --verify "refs/tags/${{ steps.bump.outputs.version }}" >/dev/null; then
-            git tag "${{ steps.bump.outputs.version }}"
+          if ! git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
+            git tag "${VERSION}"
           fi
-          git push origin HEAD "${{ steps.bump.outputs.version }}"
+          git push origin HEAD "${VERSION}"
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
+          PRERELEASE: ${{ steps.bump.outputs.prerelease }}
         run: |
-          gh release create "${{ steps.bump.outputs.version }}" \
-            --title "${{ steps.bump.outputs.version }}" \
-            --generate-notes \
-            ${{ steps.bump.outputs.prerelease == 'true' && '--prerelease' || '' }}
+          FLAGS=()
+          if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
+          # The notes are the new changelog section minus its version heading. Re-releasing a version with no new commits leaves it empty, so fall back to GitHub's generated notes.
+          if [ -s RELEASE_NOTES.md ]; then
+            sed -i '1,2d' RELEASE_NOTES.md
+            gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES.md "${FLAGS[@]}"
+          else
+            gh release create "$VERSION" --title "$VERSION" --generate-notes "${FLAGS[@]}"
+          fi

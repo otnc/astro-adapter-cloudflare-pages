@@ -33,5 +33,6 @@ closes
 - [ ] Run `npm run typecheck` (types)
 - [ ] Run `npm run test` (functions test)
 - [ ] Run `npm run build` (`dist/`)
+- [ ] Run `npm run test:e2e` (Astro 6 and 7 on `wrangler pages dev`)
 - [ ] Updated the matching skill under `skills/` and `docs/compat-notes.md` if a hook, option, or supported Astro version changed
 - [ ] (optional) Run `npm run test:coverage` and check nothing new went uncovered
