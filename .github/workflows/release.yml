@@ -100,12 +100,25 @@ jobs:
 
       # Trusted publishing: no NODE_AUTH_TOKEN, because npm exchanges the OIDC token issued by GitHub for a short-lived publish credential.
       - run: npm install -g npm@11
-      - run: npm publish --access public --provenance --tag "${{ steps.bump.outputs.npm_tag }}"
+      # Skipping a version that is already on npm lets a failed release be re-run to finish the commit, tag and GitHub Release.
+      - name: Publish to npm
+        env:
+          NPM_TAG: ${{ steps.bump.outputs.npm_tag }}
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "::notice::${NAME}@${VERSION} is already on npm; skipping publish."
+          else
+            npm publish --access public --provenance --tag "$NPM_TAG"
+          fi
 
       - name: Commit, tag and push
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          # The commit-msg hook installed by npm ci rejects the reserved release: type.
+          SKIP_SIMPLE_GIT_HOOKS: "1"
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           BOT_ID="$(gh api "users/${APP_SLUG}%5Bbot%5D" --jq .id)"
