@@ -13,6 +13,10 @@ The e2e tests (`npm run test:e2e`) install the packed adapter into an isolated p
 
 The `hybrid` fixture covers static output with on-demand pages and i18n routing, and the `advanced` fixture covers Advanced Routing with `src/fetch.ts` (Astro 7 only). The `basic` fixture covers middleware, actions, server islands, a prerendered page, an on-demand page, a dynamic route, an API endpoint, a prerendered 404 page, a public file, static and dynamic redirects, `astro:env` secrets, cookies, the client address, `Astro.locals.runtime` and `Astro.locals.cfContext`, and sessions in KV. It is not deployed to a real Pages project by CI; a real deployment is a manual release check.
 
+| Real deployment | Astro | Wrangler | Result | Date |
+| --- | --- | --- | --- | --- |
+| `basic` on a throwaway Pages project (`*.pages.dev`) with a KV namespace and a `GREETING` variable | 6.4.8, 7.3.8 | 4.151.0 | Pass: 16 checks each (prerendered page, public file, on-demand page with vars, cookies, client address, dynamic route, endpoint, `astro:env`, 404, static and dynamic redirects, sessions in KV, middleware, actions, server islands) | 2026-10-15 |
+
 ## Open questions
 
 | # | Question | Status |
@@ -33,6 +37,8 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- Wrangler 4.151 `wrangler pages project create` delegates to "the latest version of Cloudflare Pages, now part of Cloudflare Workers" unless `--force` is passed: it ran autoconfiguration on the current directory (`astro add cloudflare`, `package.json` and `tsconfig.json` edits, a Workers `wrangler.jsonc`) and then failed. With `--force` it creates a classic Pages project, and `wrangler pages deploy` to that project works as before (2026-10-15).
 
 - Prerendering runs in a separate Vite environment (`prerender`) in Node.js, and it loads packages from `node_modules` without bundling unless they are listed in `resolve.noExternal`. The adapter bundles itself there, so its image service gets `import.meta.env.BASE_URL`. Swapping sharp for the no-op service only in the `ssr` environment lets prerendered pages keep sharp optimization (`imageService: "compile"`, as v12 did) (2026-10-15).
 

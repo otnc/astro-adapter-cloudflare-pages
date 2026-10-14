@@ -47,7 +47,7 @@ Install and configure `astro-adapter-cloudflare-pages`, an unofficial, community
 
 7. Read bindings in on-demand code through `Astro.locals.runtime.env`. Do not import `cloudflare:workers` in pages: it is unavailable in `astro dev` and during prerendering.
 8. Verify locally with `npx astro build`, then `npx wrangler pages dev dist`, and request one on-demand page and one static page.
-9. Ask the user before deploying (`npx wrangler pages deploy dist`), before creating a Pages project or a KV namespace, and before using any API token. Never write tokens or account IDs into files.
+9. Ask the user before deploying (`npx wrangler pages deploy dist`), before creating a Pages project or a KV namespace, and before using any API token. Never write tokens or account IDs into files. Create a new Pages project with `npx wrangler pages project create <name> --production-branch main --force`: since Wrangler 4.151, leaving out `--force` switches to Workers and rewrites the project in the current directory (it adds `@astrojs/cloudflare` and edits `package.json`). If that happened, revert those changes with git.
 10. If the user asks for the `cf` CLI, explain that `cf` does not deploy to Cloudflare Pages (its `cf pages deploy` only refers to Wrangler or to Workers). Deploy with Wrangler or the Pages Git integration.
 
 Options and the feature support table are in the package README (`node_modules/astro-adapter-cloudflare-pages/README.md`). Tested versions are listed in https://github.com/otnc/astro-adapter-cloudflare-pages/blob/main/docs/compat-notes.md.
