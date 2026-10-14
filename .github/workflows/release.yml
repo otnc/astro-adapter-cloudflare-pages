@@ -80,6 +80,7 @@ jobs:
 
       # The build runs after the bump so dist matches the published version.
       - run: npm run build
+      - run: npm run check:package
 
       # CHANGELOG.md is rebuilt from the commit history (cliff.toml) with the new version as the latest release, and the same section becomes the GitHub Release notes.
       - name: Generate changelog

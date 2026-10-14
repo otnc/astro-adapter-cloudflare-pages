@@ -34,6 +34,7 @@ jobs:
       - run: npm run test
       - run: npm run build
       - run: npm run check:skills
+      - run: npm run check:package
 
   e2e:
     runs-on: ubuntu-latest
