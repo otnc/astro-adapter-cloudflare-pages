@@ -58,7 +58,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.ts",
+    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.js",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
