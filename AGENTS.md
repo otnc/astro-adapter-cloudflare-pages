@@ -75,6 +75,7 @@ Development skills to use in this repository:
 Managing development skills:
 
 - Add one with `npx skills add <owner>/<repo> -s <skill> -a claude-code codex -y`. This keeps the original in `.agents/skills/` and a symlink in `.claude/skills/` (git-ignored). Commit `.agents/skills/` and `skills-lock.json` together.
+- Create user-facing skills with `cd skills && npx skills init <name>` (not `skills init skills/<name>`, which writes the path into `name`) and keep the template's sections (`## When to use`, `## Instructions`). Run `npm run check:skills` after changing them. Skills must tell agents to ask before deploying, creating Cloudflare resources or handling tokens.
 - Skills listed in `skills-lock.json` are excluded when this repository is used as a skills source, so they are not offered to users. Never add development skills under `skills/`.
 - Do not edit files in `.agents/skills/` by hand. Update them through the skills CLI.
 - If `.claude/skills/` is missing after a fresh clone, run `npm run skills:link` to recreate the links.

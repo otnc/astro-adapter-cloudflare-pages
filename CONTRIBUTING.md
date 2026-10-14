@@ -23,6 +23,7 @@ Dependabot opens weekly update pull requests for npm packages and GitHub Actions
 | `npm run build` | Bundle ESM + type declarations with tsdown |
 | `npm run test` | Run the unit tests once with vitest (`npm run test:watch` to keep them running) |
 | `npm run test:e2e` | Build, pack the adapter, install it into an isolated project per Astro major (`ASTRO_MAJORS`, default `6,7`), build `test/fixtures/*` and check the responses from `wrangler pages dev` |
+| `npm run check:skills` | Validate the skills in `skills/` (frontmatter, the `skills init` sections, and the skills CLI listing) |
 | `npm run test:coverage` | Run the unit tests with a coverage report |
 | `npm run typecheck` | Type-check with `tsc --noEmit` |
 | `npm run format` | Format the code, writing the fixes (Prettier) |
@@ -111,7 +112,7 @@ Scopes are optional. The known ones are `compat`, `routes`, `runtime`, `tooling`
 
 This repository has two skill directories:
 
-- `skills/` holds the skills shipped to users of the adapter.
+- `skills/` holds the skills shipped to users of the adapter. Create a new one with `cd skills && npx skills init <name>` (passing a path such as `skills/<name>` would put the path into `name`) and keep the template's structure: frontmatter with `name` and `description` (say when to use the skill and when not to), a heading with the name, a short summary, then `## When to use` and `## Instructions`. Long tables go in a `references/` file next to `SKILL.md`. `npm run check:skills` enforces this, and CI runs it.
 - `.agents/skills/` holds third-party skills for developing this repository. They are managed with the [skills CLI](https://github.com/vercel-labs/skills) and pinned in `skills-lock.json`, which also keeps them out of `npx skills add otnc/astro-adapter-cloudflare-pages`. Claude Code reads them through symlinks in `.claude/skills/`, which is git-ignored; run `npm run skills:link` to create those links after cloning.
 
 Instructions for coding agents are in [AGENTS.md](./AGENTS.md).

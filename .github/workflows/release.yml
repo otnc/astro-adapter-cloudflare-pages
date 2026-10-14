@@ -45,6 +45,7 @@ jobs:
       - run: npm run ci
       - run: npm run typecheck
       - run: npm run test
+      - run: npm run check:skills
       - run: npm run test:e2e
         env:
           ASTRO_MAJORS: "6,7"
