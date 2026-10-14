@@ -59,6 +59,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npm run build && vitest run --config vitest.e2e.config.js",
+    "check:skills": "node scripts/validate-skills.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
