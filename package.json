@@ -47,7 +47,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "setup": "node scripts/setup.js",
     "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -59,7 +58,8 @@
     "lint:fix": "eslint --fix .",
     "check": "prettier --write . && eslint --fix .",
     "ci": "prettier --check . && eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "skills:link": "node scripts/link-claude-skills.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

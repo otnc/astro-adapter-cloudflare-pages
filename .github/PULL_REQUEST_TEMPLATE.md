@@ -28,7 +28,10 @@ closes
 
 - [ ] Check if duplicate PR(s) already exist.
 - [ ] Read `CONTRIBUTING.md` (rules)
+- [ ] The PR title follows Conventional Commits (e.g. `feat(routes): generate _routes.json`)
 - [ ] Run `npm run check` (lint & format)
+- [ ] Run `npm run typecheck` (types)
 - [ ] Run `npm run test` (functions test)
 - [ ] Run `npm run build` (`dist/`)
+- [ ] Updated the matching skill under `skills/` and `docs/compat-notes.md` if a hook, option, or supported Astro version changed
 - [ ] (optional) Run `npm run test:coverage` and check nothing new went uncovered

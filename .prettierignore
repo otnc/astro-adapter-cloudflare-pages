@@ -1,5 +1,6 @@
 dist
 coverage
+.agents
 scripts
 package-lock.json
 pnpm-lock.yaml

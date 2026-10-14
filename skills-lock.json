@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "skills": {
+    "antislop": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop/SKILL.md",
+      "computedHash": "a8a07efd7c55e0e4895ddda2d182f42691b196ea095cb731b651229254ec8f8d"
+    },
+    "antislop-code": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-code/SKILL.md",
+      "computedHash": "bac9828572f512de20122f1b0185a70315448d8fb4ae1718c2f259fff13fad6b"
+    },
+    "antislop-copywriting": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-copywriting/SKILL.md",
+      "computedHash": "709209c602d6331f5b136f43a0e660dff472bc04c56381f43fcfe9e019934d0b"
+    },
+    "antislop-human": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-human/SKILL.md",
+      "computedHash": "a20b4c2fb05981c8d5d81934411bd429a544f946f26026f80dd8f68e95bfed89"
+    },
+    "antislop-layoutmobile": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-layoutmobile/SKILL.md",
+      "computedHash": "26e4ab8ebf33e7c3098aa08a327d0f0f4cd4d88ad238a768cd5735d7e0979704"
+    },
+    "antislop-ui": {
+      "source": "miqdadbadjuber/anti-slop",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-ui/SKILL.md",
+      "computedHash": "4cb1cb91997ca9849438d1bb1a5194626e1255a1eaec59301fef174a3dee9c90"
+    },
+    "fix-unnatural-line-breaks": {
+      "source": "otnc/skills_fix-unnatural-line-breaks",
+      "sourceType": "github",
+      "skillPath": "skills/fix-unnatural-line-breaks/SKILL.md",
+      "computedHash": "f968f49f5b784d9bd6517434b7a7ed630473642c13bbd78b40cc07a609668325"
+    },
+    "hush": {
+      "source": "ro80t/hush",
+      "sourceType": "github",
+      "skillPath": "skills/hush/SKILL.md",
+      "computedHash": "fb5b49a60ed691934fab9143c126c7c801b282352129246e844f8d16a5dd2674"
+    },
+    "hush-fix": {
+      "source": "ro80t/hush",
+      "sourceType": "github",
+      "skillPath": "skills/hush-fix/SKILL.md",
+      "computedHash": "c4fa82fdf1b5f3dfa38130c3ffd1b989af8d69e453ced9dd9a58da5d27286a51"
+    },
+    "hush-review": {
+      "source": "ro80t/hush",
+      "sourceType": "github",
+      "skillPath": "skills/hush-review/SKILL.md",
+      "computedHash": "bfe62505e9a31b5b69bf864bed945ae8ef02b9542f555854977a78b17b9ab035"
+    },
+    "token-saver-claude-code": {
+      "source": "otnc/skills_ai-agent-saving-tech",
+      "sourceType": "github",
+      "skillPath": "skills/token-saver-claude-code/SKILL.md",
+      "computedHash": "97db5a13c30a7807a8284922730247bae15d4f043e7ef998777f60d2d1daa15d"
+    },
+    "token-saver-codex": {
+      "source": "otnc/skills_ai-agent-saving-tech",
+      "sourceType": "github",
+      "skillPath": "skills/token-saver-codex/SKILL.md",
+      "computedHash": "454f813fd34085b3645131fc5605431b60171db737daffa6269df3318170188d"
+    },
+    "token-saver-opencode": {
+      "source": "otnc/skills_ai-agent-saving-tech",
+      "sourceType": "github",
+      "skillPath": "skills/token-saver-opencode/SKILL.md",
+      "computedHash": "9451ea167e64f7a8cde1f981ce439c5b2e6cf6be266937de45fb03458b842d62"
+    }
+  }
+}

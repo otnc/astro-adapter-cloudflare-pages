@@ -38,17 +38,74 @@ npm run ci && npm run typecheck && npm run test && npm run build
 
 ## Conventions
 
-- **Formatting is Prettier** (default settings, no overrides) and **linting is ESLint**
-  (`eslint.config.js` — `typescript-eslint`'s recommended rules, with `eslint-config-prettier`
-  disabling any ESLint rule that would conflict with Prettier's formatting).
-  Running `npm run check` before you commit handles both.
+- **Formatting is Prettier** (`.prettierrc.json`) and **linting is ESLint** (`eslint.config.js`, `typescript-eslint`'s recommended rules, with `eslint-config-prettier` disabling any ESLint rule that would conflict with Prettier's formatting). Running `npm run check` before you commit handles both.
 - **Tests live next to the code** as `*.test.ts` and run with vitest.
-- **Comments and docs are in English** and kept brief.
+- **Comments and docs are in English** and kept brief. Do not break a sentence across lines; wrap only at paragraph, list item, heading, or code block boundaries.
 - **Type-only imports use `import type`** (`verbatimModuleSyntax` is on).
+
+## Branches
+
+`main` is always releasable, and every change reaches it through a pull request. Do not push to `main` directly.
+
+Create a short-lived branch from the latest `main`, named `<type>/<short-kebab-description>`, where `<type>` is one of the commit types below:
+
+```text
+feat/routes-json
+fix/set-cookie-headers
+docs/readme-usage
+```
+
+Keep your branch up to date by rebasing onto `main` rather than merging `main` into it. Branches are deleted after they are merged.
+
+`release/<major>.x` branches (for example `release/1.x`) are created only when an older release line needs fixes after a new major ships. CI runs on them the same way as on `main`.
+
+## Commit messages
+
+Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```text
+<type>(<optional scope>): <summary>
+
+<optional body: what changed and why>
+
+<optional footer, e.g. BREAKING CHANGE: ... or Closes #12>
+```
+
+| Type | Use for |
+| --- | --- |
+| `feat` | A new user-facing feature or option |
+| `fix` | A bug fix |
+| `docs` | Documentation only (README, `docs/`, comments) |
+| `test` | Adding or fixing tests and fixtures |
+| `refactor` | A code change that neither fixes a bug nor adds a feature |
+| `perf` | A performance improvement |
+| `build` | Build setup, packaging, or dependencies |
+| `ci` | GitHub Actions workflows |
+| `chore` | Maintenance that fits nothing above (tooling config, agent skills under `.agents/`) |
+| `revert` | Reverting an earlier commit |
+| `release` | Reserved for the `release` workflow; never use it by hand |
+
+Common scopes are `compat`, `routes`, `runtime`, `tooling`, `skills` (the user-facing skills under `skills/`), and `deps`. The scope is optional.
+
+- Write the summary in the imperative mood, in lowercase, without a trailing period, and keep it under 72 characters: `feat(routes): generate _routes.json from resolved routes`.
+- Mark breaking changes with `!` after the type or scope and a `BREAKING CHANGE:` footer that explains how to migrate: `feat(compat)!: drop Astro 6 support`.
+- One logical change per commit. Do not mix formatting changes with behavior changes.
 
 ## Pull requests
 
-Keep each change focused and add tests for any new behaviour.
+- Keep each pull request focused and add tests for any new behaviour.
+- The pull request title must be a Conventional Commit message (CI checks it), because pull requests are squash-merged and the title becomes the commit on `main`.
+- Fill in the pull request template and make sure the full check set above passes.
+- Any change to a hook, an option, or a supported Astro version must update the matching skill under `skills/` and `docs/compat-notes.md` in the same pull request.
+
+## Agent skills
+
+This repository has two skill directories:
+
+- `skills/` holds the skills shipped to users of the adapter.
+- `.agents/skills/` holds third-party skills for developing this repository. They are managed with the [skills CLI](https://github.com/vercel-labs/skills) and pinned in `skills-lock.json`, which also keeps them out of `npx skills add otnc/astro-adapter-cloudflare-pages`. Claude Code reads them through symlinks in `.claude/skills/`, which is git-ignored; run `npm run skills:link` to create those links after cloning.
+
+Instructions for coding agents are in [AGENTS.md](./AGENTS.md).
 
 ## Releasing (maintainers)
 
@@ -56,8 +113,7 @@ Releasing is one manual step.
 From the Actions tab, run the `release` workflow (`workflow_dispatch`) and give it a `version` input — either a bump keyword (`patch` / `minor` / `major` / `prerelease`) or an explicit version like `0.1.0`.
 The workflow runs the checks and build, bumps `package.json`, publishes to npm with provenance via **trusted publishing** (OIDC — no `NPM_TOKEN` needed), pushes the version commit and tag, and creates a GitHub Release with generated notes.
 
-Trusted publishing must be configured once on npmjs.com:
-package **Settings → Publishing access → Trusted publishers → GitHub**, pointing at this repository's `release.yml` workflow.
+Trusted publishing must be configured once on npmjs.com: package **Settings → Publishing access → Trusted publishers → GitHub**, pointing at this repository's `release.yml` workflow.
 
 ## License
 
