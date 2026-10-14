@@ -7,7 +7,10 @@
 [![GitHub](https://img.shields.io/github/license/otnc/astro-adapter-cloudflare-pages)](https://github.com/otnc/astro-adapter-cloudflare-pages/blob/main/LICENSE)
 [![Node](https://img.shields.io/node/v/astro-adapter-cloudflare-pages)](https://www.npmjs.com/package/astro-adapter-cloudflare-pages)
 
-This is an **unofficial, community** adapter. It is not affiliated with or endorsed by Astro or Cloudflare. The official [`@astrojs/cloudflare`](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) adapter dropped Cloudflare Pages support in v13 and targets Cloudflare Workers. If you can move to Workers, use the official adapter instead; Cloudflare recommends Workers for new projects.
+This is an **unofficial, community** adapter. It is not affiliated with or endorsed by Astro or Cloudflare. The official [`@astrojs/cloudflare`](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) adapter dropped Cloudflare Pages support in v13 and targets Cloudflare Workers.
+
+> [!NOTE]
+> Cloudflare recommends Workers instead of Pages for new projects. To move, use the official adapter and follow Cloudflare's [Pages to Workers migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/).
 
 > [!WARNING]
 > This is an early release (0.x). Options and behavior may change in minor versions. See [docs/compat-notes.md](./docs/compat-notes.md) for exactly what has been tested.
@@ -173,7 +176,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 
 ## Migrating to Workers
 
-Cloudflare recommends Workers for new projects. To move, switch to the official [`@astrojs/cloudflare`](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) adapter and follow Cloudflare's [Pages to Workers migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/). The official adapter replaces `Astro.locals.runtime` with `import { env } from "cloudflare:workers"` and `Astro.locals.cfContext`.
+The official adapter replaces `Astro.locals.runtime` with `import { env } from "cloudflare:workers"` and `Astro.locals.cfContext`.
 
 ## Agent skills
 
