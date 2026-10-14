@@ -106,6 +106,6 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{json,yml,yaml}": "prettier --write"
+    "*.{json,jsonc,yml,yaml}": "prettier --write"
   }
 }

@@ -30,6 +30,7 @@ function runNode(script: string, args: string[], cwd: string): void {
   const result = spawnSync(process.execPath, [script, ...args], {
     cwd,
     stdio: "inherit",
+    env: childEnv(),
   });
   if (result.status !== 0) {
     throw new Error(`\`${script} ${args.join(" ")}\` failed in ${cwd}`);
@@ -169,54 +170,98 @@ function stopTree(child: ChildProcess): void {
   }
 }
 
-/** Serves the build with `wrangler pages dev`, the same runtime Pages uses, with a KV namespace for sessions. */
-export async function startPagesDev(
+// Vitest sets NODE_ENV=test and VITEST* variables, which change how a nested Astro or Vite process behaves.
+function childEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    WRANGLER_SEND_METRICS: "false",
+  };
+  for (const key of Object.keys(env)) {
+    if (key === "NODE_ENV" || key.startsWith("VITEST") || key === "TEST")
+      delete env[key];
+  }
+  return env;
+}
+
+async function startServer(
+  args: string[],
   dir: string,
-  port: number
+  port: number,
+  readyPath: string
 ): Promise<PagesServer> {
-  const args = [
-    binPath(dir, "wrangler", "wrangler"),
-    "pages",
-    "dev",
-    "dist",
-    "--port",
-    String(port),
-    "--ip",
-    "127.0.0.1",
-    "--compatibility-date",
-    "2026-10-01",
-    "--kv",
-    "SESSION",
-    "--binding",
-    `GREETING=${GREETING}`,
-    "--show-interactive-dev-session=false",
-  ];
   const child = spawn(process.execPath, args, {
     cwd: dir,
     detached: process.platform !== "win32",
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+    env: childEnv(),
   });
   let output = "";
   child.stdout?.on("data", (chunk: Buffer) => (output += chunk.toString()));
   child.stderr?.on("data", (chunk: Buffer) => (output += chunk.toString()));
 
   const url = `http://127.0.0.1:${port}`;
-  const deadline = Date.now() + 60_000;
+  const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) {
-      throw new Error(`wrangler pages dev exited early:\n${output}`);
+      throw new Error(`\`${args.join(" ")}\` exited early:\n${output}`);
     }
     try {
-      await fetch(`${url}/robots.txt`);
-      return { url, stop: () => stopTree(child) };
+      const response = await fetch(`${url}${readyPath}`, {
+        signal: AbortSignal.timeout(5_000),
+      });
+      // A dev server can serve public files before routes are ready, so wait for a successful page.
+      if (response.ok) return { url, stop: () => stopTree(child) };
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Not listening yet.
     }
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
   stopTree(child);
   throw new Error(
-    `wrangler pages dev did not start within 60 seconds:\n${output}`
+    `\`${args.join(" ")}\` did not start within 90 seconds:\n${output}`
+  );
+}
+
+/** Runs `astro dev`, which emulates bindings from wrangler.jsonc through the adapter's platform proxy. */
+export function startAstroDev(dir: string, port: number): Promise<PagesServer> {
+  return startServer(
+    [
+      binPath(dir, "astro", "astro"),
+      "dev",
+      "--port",
+      String(port),
+      "--host",
+      "127.0.0.1",
+    ],
+    dir,
+    port,
+    "/"
+  );
+}
+
+/** Serves the build with `wrangler pages dev`, the same runtime Pages uses, with a KV namespace for sessions. */
+export function startPagesDev(dir: string, port: number): Promise<PagesServer> {
+  return startServer(
+    [
+      binPath(dir, "wrangler", "wrangler"),
+      "pages",
+      "dev",
+      "dist",
+      "--port",
+      String(port),
+      "--ip",
+      "127.0.0.1",
+      "--compatibility-date",
+      "2026-10-01",
+      "--kv",
+      "SESSION",
+      "--binding",
+      `GREETING=${GREETING}`,
+      "--show-interactive-dev-session=false",
+    ],
+    dir,
+    port,
+    "/robots.txt"
   );
 }
 
