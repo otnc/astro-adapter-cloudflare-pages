@@ -1,4 +1,5 @@
 .private/
+.claude/
 node_modules/
 dist/
 coverage/
@@ -7,3 +8,4 @@ coverage/
 .env
 .env.*
 !.env.example
+CLAUDE.local.md
