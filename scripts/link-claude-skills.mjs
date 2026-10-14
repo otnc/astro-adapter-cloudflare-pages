@@ -1,5 +1,11 @@
 // Links every development skill in .agents/skills/ into .claude/skills/, which is git-ignored. `npx skills experimental_install` restores .agents/skills/ but only links universal agents, so Claude Code needs this after a clone.
-import { existsSync, lstatSync, mkdirSync, readdirSync, symlinkSync } from "node:fs";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readdirSync,
+  symlinkSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 
 const sourceDir = resolve(".agents/skills");
