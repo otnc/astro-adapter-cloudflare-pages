@@ -41,10 +41,14 @@
     "node": ">=22.12.0"
   },
   "peerDependencies": {
-    "astro": "^6.0.0 || ^7.0.0",
+    "astro": "^6 || ^7",
+    "cf": "^1.0.0-beta.17",
     "wrangler": "^4.0.0"
   },
   "peerDependenciesMeta": {
+    "cf": {
+      "optional": true
+    },
     "wrangler": {
       "optional": true
     }
@@ -54,6 +58,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -64,8 +69,11 @@
     "prepublishOnly": "npm run build",
     "skills:link": "node scripts/link-claude-skills.mjs"
   },
+  "dependencies": {
+    "@astrojs/underscore-redirects": "1.0.4",
+    "@cloudflare/workers-types": "^5.20261014.1"
+  },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261014.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.5",
     "@vitest/coverage-v8": "^5.0.1",
