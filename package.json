@@ -1,18 +1,31 @@
 {
-  "name": "<package-name>",
+  "name": "astro-adapter-cloudflare-pages",
   "version": "0.0.0",
-  "description": "<package-description>",
-  "keywords": [],
-  "homepage": "<package-git>#readme",
+  "description": "Astro adapter for deploying on-demand rendered sites to Cloudflare Pages (Astro 6, 7 and later)",
+  "keywords": [
+    "Astro",
+    "astro",
+    "astro-adapter",
+    "astro-integration",
+    "cf",
+    "cloudflare",
+    "wrangler",
+    "cloudflare-pages",
+    "pages",
+    "cf-pages",
+    "Cloudflare",
+    "Cloudflare Pages"
+  ],
+  "homepage": "https://github.com/otnc/astro-adapter-cloudflare-pages#readme",
   "bugs": {
-    "url": "<package-git>/issues"
+    "url": "https://github.com/otnc/astro-adapter-cloudflare-pages/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+<package-git>.git"
+    "url": "git+https://github.com/otnc/astro-adapter-cloudflare-pages.git"
   },
-  "license": "<package-license>",
-  "author": "<package-author>",
+  "license": "MIT",
+  "author": "otoneko.",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
