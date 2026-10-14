@@ -21,6 +21,7 @@ import {
   type Tool,
   type ToolOption,
 } from "./tooling/index.js";
+import { createGetEnv } from "./utils/env.js";
 import { createRoutesJson } from "./utils/routes-json.js";
 
 export type { Runtime, PagesExecutionContext } from "./types.js";
@@ -261,6 +262,13 @@ export default function cloudflarePages(
         const scope = globalThis as { __env__?: Record<string, unknown> };
         scope.__env__ ??= {};
         scope.__env__[sessionKVBindingName] = proxy.env[sessionKVBindingName];
+
+        // In dev, astro:env reads process.env, so copy the variables the schema declares from the bindings.
+        const getEnv = createGetEnv(proxy.env);
+        for (const key of Object.keys(config.env?.schema ?? {})) {
+          const value = getEnv(key);
+          if (value !== undefined) process.env[key] = value;
+        }
 
         const clientLocalsSymbol = Symbol.for("astro.locals");
         server.middlewares.use((req, _res, next) => {
