@@ -3,18 +3,16 @@
   "version": "0.0.0",
   "description": "Astro adapter for deploying on-demand rendered sites to Cloudflare Pages (Astro 6, 7 and later)",
   "keywords": [
-    "Astro",
     "astro",
     "astro-adapter",
     "astro-integration",
-    "cf",
+    "withastro",
     "cloudflare",
-    "wrangler",
     "cloudflare-pages",
     "pages",
     "cf-pages",
-    "Cloudflare",
-    "Cloudflare Pages"
+    "wrangler",
+    "cf"
   ],
   "homepage": "https://github.com/otnc/astro-adapter-cloudflare-pages#readme",
   "bugs": {
@@ -27,24 +25,29 @@
   "license": "MIT",
   "author": "otoneko.",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.mts",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "types": {
-        "import": "./dist/index.d.mts",
-        "require": "./dist/index.d.cts"
-      },
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    }
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
+  },
+  "peerDependencies": {
+    "astro": "^6.0.0 || ^7.0.0",
+    "wrangler": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "wrangler": {
+      "optional": true
+    }
   },
   "scripts": {
     "build": "tsdown",
@@ -62,9 +65,11 @@
     "skills:link": "node scripts/link-claude-skills.mjs"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261014.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.5",
     "@vitest/coverage-v8": "^5.0.1",
+    "astro": "^7.3.8",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
@@ -72,6 +77,11 @@
     "tsdown": "^0.23.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "wrangler": "^4.151.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "workerd": true
   }
 }

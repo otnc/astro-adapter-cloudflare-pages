@@ -6,7 +6,7 @@ Instructions for coding agents (Claude Code, Codex, and others) working in this 
 
 - `astro-adapter-cloudflare-pages` is an unofficial, community Astro adapter that deploys on-demand rendered Astro 6 and 7 sites to Cloudflare Pages. Astro 8 and later are planned.
 - The official `@astrojs/cloudflare` dropped Pages support in v13 and targets Workers only. Never describe this package as official, and never use the `@astrojs` scope.
-- Stack: TypeScript (`^6.0.3`, do not upgrade to 7 without asking), tsdown, Vitest, ESLint, Prettier, Node.js >= 22.
+- Stack: TypeScript (`^6.0.3`, do not upgrade to 7 without asking), tsdown, Vitest, ESLint, Prettier, Node.js >= 22.12.0. Dev dependencies include `astro` (7.x), `wrangler`, and `@cloudflare/workers-types`.
 
 ## Commands
 
