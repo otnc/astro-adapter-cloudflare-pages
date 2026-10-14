@@ -6,7 +6,7 @@ Instructions for coding agents (Claude Code, Codex, and others) working in this 
 
 - `astro-adapter-cloudflare-pages` is an unofficial, community Astro adapter that deploys on-demand rendered Astro 6 and 7 sites to Cloudflare Pages. Astro 8 and later are planned.
 - The official `@astrojs/cloudflare` dropped Pages support in v13 and targets Workers only. Never describe this package as official, and never use the `@astrojs` scope.
-- Stack: TypeScript (`^6.0.3`, do not upgrade to 7 without asking), tsdown, Vitest, ESLint, Prettier, Node.js >= 22.12.0. Dev dependencies include `astro` (7.x), `wrangler`, and `@cloudflare/workers-types`.
+- Stack: TypeScript (`^6.0.3`, do not upgrade to 7 without asking), tsdown, Vitest, ESLint, Prettier, Node.js >= 22.12.0 (develop on 22, pinned in `.nvmrc`; keep config files in plain JavaScript). Dev dependencies include `astro` (7.x) and `wrangler`; `@cloudflare/workers-types` and `@astrojs/underscore-redirects` are runtime dependencies.
 
 ## Commands
 
@@ -17,9 +17,10 @@ npm run ci         # format and lint checks without writing (what CI runs)
 npm run typecheck
 npm run test
 npm run build
+npm run test:e2e   # Astro 6 and 7 fixtures on wrangler pages dev (ASTRO_MAJORS=6,7)
 ```
 
-Run `npm run ci && npm run typecheck && npm run test && npm run build` before you say a change is done, and report failures with their output.
+Run `npm run ci && npm run typecheck && npm run test && npm run build && npm run test:e2e` before you say a change is done, and report failures with their output.
 
 ## Architecture rules
 
@@ -32,7 +33,8 @@ Run `npm run ci && npm run typecheck && npm run test && npm run build` before yo
 ## Git workflow
 
 - Never commit directly to `main`. Create a branch from the latest `main` named `<type>/<short-kebab-description>`, for example `feat/routes-json` or `fix/set-cookie-headers`.
-- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `<type>(<optional scope>): <summary>`. The allowed types and scopes are listed in [CONTRIBUTING.md](./CONTRIBUTING.md#commit-messages).
+- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/): `<type>(<optional scope>): <summary>`. commitlint enforces them in the `commit-msg` hook and on pull request titles; the allowed types and scopes are listed in [CONTRIBUTING.md](./CONTRIBUTING.md#commit-messages). Never bypass the hooks with `--no-verify`.
+- Choose the type with care: `CHANGELOG.md` is generated from commit types by git-cliff at release time, and only `feat`, `fix`, `perf`, `refactor` and `docs` are listed. Never edit `CHANGELOG.md` by hand.
 - Keep commits small, one logical change each. When a change contradicts an earlier decision, say so in the commit body.
 - The pull request title must also be a Conventional Commit, because pull requests are squash-merged and the title becomes the commit on `main`.
 - Never add `Co-Authored-By` or "Generated with" lines to commits or pull requests.
