@@ -14,10 +14,8 @@ import {
 import type {
   AstroConfig,
   AstroIntegration,
-  AstroIntegrationLogger,
   IntegrationResolvedRoute,
 } from "astro";
-import { passthroughImageService } from "astro/config";
 import {
   assertSupportedAstro,
   resolveCompat,
@@ -33,6 +31,11 @@ import {
   type ToolOption,
 } from "./tooling/index.js";
 import { createGetEnv } from "./utils/env.js";
+import {
+  resolveImageSetup,
+  swapSharpInWorker,
+  type ImageServiceOption,
+} from "./utils/image-config.js";
 import { createRoutesJson } from "./utils/routes-json.js";
 import { inlineEntryFacade, parseEntryFacade } from "./utils/server-chunks.js";
 
@@ -66,6 +69,18 @@ export interface Options {
    * @default "SESSION"
    */
   sessionKVBindingName?: string;
+  /**
+   * How images are optimized. sharp cannot run on Cloudflare, so on-demand pages never use it.
+   *
+   * - `"compile"`: optimize images of prerendered pages with sharp at build time, and serve images of on-demand pages unchanged.
+   * - `"passthrough"`: never optimize.
+   * - `"cloudflare"`: resize through Cloudflare Images transformations (`/cdn-cgi/image/`), which must be enabled on the zone. `astro dev` keeps sharp.
+   * - `"custom"`: use `image.service` as configured.
+   *
+   * A non-sharp `image.service` is always kept.
+   * @default "compile"
+   */
+  imageService?: ImageServiceOption;
   /** Escape hatches. Everything here is unsupported. */
   unsafe?: {
     /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */
@@ -74,7 +89,6 @@ export interface Options {
 }
 
 const PACKAGE_NAME = "astro-adapter-cloudflare-pages";
-const SHARP_SERVICE_ENTRYPOINT = "astro/assets/services/sharp";
 const DEFAULT_SESSION_KV_BINDING_NAME = "SESSION";
 const PASS_THROUGH_UNSUPPORTED =
   "`passThroughOnException` is not available in Cloudflare Pages Functions. See https://developers.cloudflare.com/pages/platform/known-issues/#pages-functions.";
@@ -110,20 +124,6 @@ async function listPublicFiles(publicDir: URL): Promise<string[]> {
   } catch {
     return [];
   }
-}
-
-// sharp cannot run in workerd, so Astro's default image service would break on-demand pages.
-function resolveImageService(
-  config: AstroConfig,
-  logger: AstroIntegrationLogger
-): ReturnType<typeof passthroughImageService> | undefined {
-  if (config.image.service.entrypoint !== SHARP_SERVICE_ENTRYPOINT) {
-    return undefined;
-  }
-  logger.info(
-    "Cloudflare Pages cannot run sharp, so images are served without optimization (passthrough image service)."
-  );
-  return passthroughImageService();
 }
 
 // Pages re-bundles _worker.js/ and cannot resolve chunks that import back from the entry, so fold such re-export-only chunks into the entry.
@@ -213,6 +213,7 @@ export default function cloudflarePages(
         updateConfig,
         logger,
         addWatchFile,
+        command,
       }) => {
         compat = resolveCompat(userConfig.root);
         assertSupportedAstro(
@@ -229,9 +230,14 @@ export default function cloudflarePages(
           session = compat.createKVSessionConfig(sessionKVBindingName, session);
         }
 
-        const imageService = resolveImageService(userConfig, logger);
+        const image = resolveImageSetup(
+          options.imageService,
+          userConfig,
+          command,
+          logger
+        );
         updateConfig({
-          ...(imageService && { image: { service: imageService } }),
+          ...(image.service && { image: { service: image.service } }),
           session,
           build: {
             client: new URL(
@@ -243,7 +249,10 @@ export default function cloudflarePages(
             redirects: false,
           },
           vite: {
+            // Bundle this package in every server environment, prerendering included, so Vite processes the image service (`import.meta.env.BASE_URL`).
+            ssr: { noExternal: [PACKAGE_NAME] },
             plugins: [
+              ...(image.swapSharpInWorker ? [swapSharpInWorker()] : []),
               {
                 name: `${PACKAGE_NAME}:cloudflare-imports`,
                 enforce: "pre",
@@ -348,6 +357,22 @@ export default function cloudflarePages(
       "astro:build:setup": ({ vite, target }) => {
         if (target !== "server") return;
         compat.bundleServerAsOneModule(vite);
+        // Prerendering runs in its own environment, which Astro 6 rebuilds from scratch, so add this package to its bundled modules here rather than in astro:config:setup.
+        const prerender = ((vite.environments ??= {}).prerender ??= {});
+        const noExternal = prerender.resolve?.noExternal;
+        if (noExternal !== true) {
+          prerender.resolve = {
+            ...prerender.resolve,
+            noExternal: [
+              ...(Array.isArray(noExternal)
+                ? noExternal
+                : noExternal
+                  ? [noExternal]
+                  : []),
+              PACKAGE_NAME,
+            ],
+          };
+        }
         vite.ssr ??= {};
         vite.ssr.target = "webworker";
         vite.ssr.noExternal = true;
