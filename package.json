@@ -98,7 +98,7 @@
     "workerd": true
   },
   "simple-git-hooks": {
-    "pre-commit": "npx lint-staged",
+    "pre-commit": "npx --no -- lint-staged",
     "commit-msg": "npx --no -- commitlint --edit \"$1\""
   },
   "lint-staged": {
