@@ -1,0 +1,10 @@
+---
+const { env } = Astro.locals.runtime;
+Astro.cookies.set("visited", "yes");
+---
+<html><body>
+<h1>On-demand page</h1>
+<p id="greeting">{env.GREETING}</p>
+<p id="client">{Astro.clientAddress}</p>
+<p id="has-cf-context">{String(typeof Astro.locals.cfContext?.waitUntil === "function")}</p>
+</body></html>

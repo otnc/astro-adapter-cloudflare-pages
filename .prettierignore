@@ -6,3 +6,6 @@ pnpm-lock.yaml
 yarn.lock
 bun.lock
 *.md
+.cache
+**/.astro
+**/.wrangler

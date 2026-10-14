@@ -14,5 +14,11 @@
     "isolatedModules": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "tsdown.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    "test",
+    "tsdown.config.ts",
+    "vitest.config.ts",
+    "vitest.e2e.config.ts"
+  ]
 }

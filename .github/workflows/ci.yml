@@ -23,3 +23,21 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        astro: [6, 7]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Builds the fixtures against each Astro major in an isolated project and serves them with `wrangler pages dev`.
+      - run: npm run test:e2e
+        env:
+          ASTRO_MAJORS: ${{ matrix.astro }}

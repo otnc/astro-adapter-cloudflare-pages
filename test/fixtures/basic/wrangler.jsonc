@@ -1,0 +1,7 @@
+{
+  "name": "astro-adapter-cloudflare-pages-fixture-basic",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": { "GREETING": "hello from vars" },
+}
