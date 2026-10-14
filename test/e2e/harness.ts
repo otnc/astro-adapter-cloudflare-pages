@@ -172,9 +172,13 @@ function stopTree(child: ChildProcess): void {
 
 // Vitest sets NODE_ENV=test and VITEST* variables, which change how a nested Astro or Vite process behaves.
 function childEnv(): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env, WRANGLER_SEND_METRICS: "false" };
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    WRANGLER_SEND_METRICS: "false",
+  };
   for (const key of Object.keys(env)) {
-    if (key === "NODE_ENV" || key.startsWith("VITEST") || key === "TEST") delete env[key];
+    if (key === "NODE_ENV" || key.startsWith("VITEST") || key === "TEST")
+      delete env[key];
   }
   return env;
 }
