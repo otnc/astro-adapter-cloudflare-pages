@@ -34,6 +34,10 @@ function exposeSessionBinding(env: PagesEnv): void {
   scope.__env__[bindingName] = env[bindingName];
 }
 
+function servesStaticPage(request: Request, pathname: string): boolean {
+  return pathname.endsWith(".html") || app.match(request, true) !== undefined;
+}
+
 function fetchAsset(env: PagesEnv, url: string): Promise<Response> {
   // Pages serves `/about.html` at `/about` and redirects the `.html` form, so ask for the canonical path.
   return env.ASSETS.fetch(
@@ -78,7 +82,8 @@ async function fetch(
   }
 
   const routeData = app.match(request);
-  if (!routeData) {
+  // Only prerendered pages and `.html` URLs fall back to the static files. Without a 404.html, Pages answers any unknown path with index.html, which would hide Astro's 404 page and a custom src/fetch.ts handler.
+  if (!routeData && servesStaticPage(request, pathname)) {
     const asset = await fetchAsset(env, request.url);
     if (asset.status !== 404) {
       return asset;

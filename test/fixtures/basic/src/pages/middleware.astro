@@ -1,0 +1,4 @@
+---
+const value = (Astro.locals as { fromMiddleware?: string }).fromMiddleware;
+---
+<html><body><p id="from-middleware">{value}</p></body></html>

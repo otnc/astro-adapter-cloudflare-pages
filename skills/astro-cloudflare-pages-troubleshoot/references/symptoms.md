@@ -14,4 +14,6 @@
 | Images are not resized | The adapter replaces sharp with the passthrough image service | Expected. Configure another `image.service` if resizing is required. |
 | Cookies are not set on responses | The response was created outside Astro's rendering, for example in a custom handler | Set cookies with `Astro.cookies`; the adapter adds them to responses that Astro renders. |
 | Build fails with "tested with Astro 6, 7" | An untested Astro major is installed | Use a supported Astro version, update the adapter, or set `unsafe: { allowUntestedAstro: true }` knowingly. |
+| Server islands fail with `Could not resolve "../index.js"` or `Incorrect type for map entry` | An adapter version before the fix for Astro 6 server island chunks | Update the adapter. It now builds the Worker as one module. |
+| An unknown URL shows the home page with status 200 | An adapter version that sent unmatched requests to the static files, which Pages answers with `index.html` when no 404 page exists | Update the adapter, or add a `src/pages/404.astro` page. |
 | `cloudflare.config.ts` bindings missing in `astro dev` | The `cf` CLI has no local runtime API yet, so the adapter uses Wrangler's | Declare development bindings in a Wrangler config as well. |

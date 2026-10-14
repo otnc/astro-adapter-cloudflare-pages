@@ -1,4 +1,5 @@
 import type { AstroConfig } from "astro";
+import type { InlineConfig } from "vite";
 
 type SessionConfig = Exclude<AstroConfig["session"], false>;
 
@@ -10,4 +11,10 @@ export interface AstroCompat {
     bindingName: string,
     userSession: SessionConfig | undefined
   ): SessionConfig;
+  /**
+   * Makes the server build emit one module. Pages re-bundles `_worker.js/` and cannot resolve a split chunk that imports back from `../index.js`, which Astro 6 emits for server islands.
+   *
+   * Called from `astro:build:setup` with the final build config, so the server environment can copy Astro's own output options (such as the `index.js` entry name) instead of replacing them.
+   */
+  bundleServerAsOneModule(vite: InlineConfig): void;
 }

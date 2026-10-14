@@ -1,4 +1,11 @@
-import { appendFile, readFile, readdir, writeFile } from "node:fs/promises";
+import {
+  appendFile,
+  readFile,
+  readdir,
+  rm,
+  rmdir,
+  writeFile,
+} from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import {
   createRedirectsFromAstroRoutes,
@@ -11,7 +18,11 @@ import type {
   IntegrationResolvedRoute,
 } from "astro";
 import { passthroughImageService } from "astro/config";
-import { assertSupportedAstro, resolveCompat } from "./compat/index.js";
+import {
+  assertSupportedAstro,
+  resolveCompat,
+  type ResolvedCompat,
+} from "./compat/index.js";
 import type { PlatformProxyOptions } from "./tooling/platform-proxy.js";
 import {
   CF_CONFIG_FILES,
@@ -23,6 +34,7 @@ import {
 } from "./tooling/index.js";
 import { createGetEnv } from "./utils/env.js";
 import { createRoutesJson } from "./utils/routes-json.js";
+import { inlineEntryFacade, parseEntryFacade } from "./utils/server-chunks.js";
 
 export type { Runtime, PagesExecutionContext } from "./types.js";
 
@@ -114,6 +126,46 @@ function resolveImageService(
   return passthroughImageService();
 }
 
+// Pages re-bundles _worker.js/ and cannot resolve chunks that import back from the entry, so fold such re-export-only chunks into the entry.
+async function inlineEntryFacades(serverDir: URL): Promise<void> {
+  const entryFile = new URL("./index.js", serverDir);
+  let entry: string;
+  try {
+    entry = await readFile(entryFile, "utf-8");
+  } catch {
+    return;
+  }
+  const files = await readdir(serverDir, {
+    recursive: true,
+    withFileTypes: true,
+  });
+  const root = fileURLToPath(serverDir);
+  let changed = false;
+  const emptiedDirs = new Set<string>();
+  for (const file of files) {
+    if (!file.isFile() || !/\.m?js$/.test(file.name)) continue;
+    const path = `${file.parentPath}/${file.name}`;
+    const relativePath = path
+      .slice(root.length)
+      .replace(/\\/g, "/")
+      .replace(/^\/+/, "");
+    if (relativePath === "index.js") continue;
+    const names = parseEntryFacade(await readFile(path, "utf-8"));
+    if (!names) continue;
+    const rewritten = inlineEntryFacade(entry, relativePath, names);
+    if (rewritten === entry) continue;
+    entry = rewritten;
+    changed = true;
+    await rm(path);
+    emptiedDirs.add(file.parentPath);
+  }
+  if (changed) await writeFile(entryFile, entry, "utf-8");
+  for (const dir of emptiedDirs) {
+    // rmdir removes only empty directories, so a folder that still holds other chunks stays.
+    await rmdir(dir).catch(() => {});
+  }
+}
+
 async function readRedirectSources(redirectsFile: URL): Promise<string[]> {
   try {
     const content = await readFile(redirectsFile, "utf-8");
@@ -150,6 +202,7 @@ export default function cloudflarePages(
     options.sessionKVBindingName ?? DEFAULT_SESSION_KV_BINDING_NAME;
   let config: AstroConfig;
   let tool: Tool = "wrangler";
+  let compat: ResolvedCompat;
   let routes: IntegrationResolvedRoute[] = [];
 
   return {
@@ -161,7 +214,7 @@ export default function cloudflarePages(
         logger,
         addWatchFile,
       }) => {
-        const compat = resolveCompat(userConfig.root);
+        compat = resolveCompat(userConfig.root);
         assertSupportedAstro(
           compat,
           options.unsafe?.allowUntestedAstro ?? false,
@@ -294,6 +347,7 @@ export default function cloudflarePages(
 
       "astro:build:setup": ({ vite, target }) => {
         if (target !== "server") return;
+        compat.bundleServerAsOneModule(vite);
         vite.ssr ??= {};
         vite.ssr.target = "webworker";
         vite.ssr.noExternal = true;
@@ -309,6 +363,7 @@ export default function cloudflarePages(
       },
 
       "astro:build:done": async ({ pages, dir, logger, assets }) => {
+        await inlineEntryFacades(new URL("./_worker.js/", config.outDir));
         const redirectsFile = new URL("./_redirects", config.outDir);
         const routesFile = new URL("./_routes.json", config.outDir);
 

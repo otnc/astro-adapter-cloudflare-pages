@@ -1,0 +1,6 @@
+---
+import { actions } from "astro:actions";
+
+const { data, error } = await Astro.callAction(actions.greet, { name: "action" });
+---
+<html><body><p id="action">{error ? `error: ${error.message}` : `${data.message} ${data.greeting}`}</p></body></html>

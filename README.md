@@ -138,11 +138,13 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Sessions in KV | Tested |
 | Cookies and `Astro.clientAddress` | Tested |
 | `astro dev` with bindings (Wrangler) | Tested |
-| Middleware | Untested |
-| Actions | Untested |
-| Server islands | Untested |
-| i18n routing | Untested |
-| Astro 7 Advanced Routing (`src/fetch.ts`) | Untested |
+| Static output with on-demand pages (`prerender = false`) | Tested |
+| Middleware | Tested |
+| Actions | Tested |
+| Server islands | Tested |
+| i18n routing | Tested |
+| Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
+| Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization | Not supported (passthrough only) |
 | `cf` CLI | Detected from `cloudflare.config.*`, but it cannot deploy to Pages and has no local runtime API yet; `astro dev` uses Wrangler |
 
