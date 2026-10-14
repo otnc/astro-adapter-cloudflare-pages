@@ -36,7 +36,7 @@ Run `npm run ci && npm run typecheck && npm run test && npm run build` before yo
 - Keep commits small, one logical change each. When a change contradicts an earlier decision, say so in the commit body.
 - The pull request title must also be a Conventional Commit, because pull requests are squash-merged and the title becomes the commit on `main`.
 - Never add `Co-Authored-By` or "Generated with" lines to commits or pull requests.
-- Do not merge pull requests or enable auto-merge unless the maintainer explicitly allows it.
+- Do not merge pull requests or enable auto-merge unless the maintainer explicitly allows it. The only standing exception is the `dependabot-auto-merge` workflow, which auto-merges patch and minor Dependabot updates after the required checks pass.
 - `release:` commits and `v*` tags are created only by the `release` workflow. Do not create them by hand.
 
 ## Safety
