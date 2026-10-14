@@ -1,0 +1,8 @@
+{
+  "name": "astro-adapter-cloudflare-pages-fixture-hybrid",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-10-01",
+  "vars": { "GREETING": "hello from vars" },
+  // A local-only namespace for sessions in `astro dev`; the e2e tests pass their own with --kv.
+  "kv_namespaces": [{ "binding": "SESSION", "id": "local-session" }],
+}

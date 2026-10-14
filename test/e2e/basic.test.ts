@@ -110,4 +110,38 @@ describe.each(astroMajors())("Astro %i: basic fixture on Pages", (major) => {
     const second = await get("/session", { headers: { cookie } });
     expect(await second.text()).toContain('<p id="count">2</p>');
   });
+
+  it("runs middleware on on-demand pages", async () => {
+    const response = await get("/middleware");
+    expect(response.headers.get("x-middleware")).toBe("yes");
+    expect(await response.text()).toContain(
+      '<p id="from-middleware">set by middleware</p>'
+    );
+  });
+
+  it("runs actions with access to bindings", async () => {
+    expect(await (await get("/action")).text()).toContain(
+      `<p id="action">Hello action ${GREETING}</p>`
+    );
+    const response = await get("/_actions/greet", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({ name: "rpc" }),
+    });
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("Hello rpc");
+  });
+
+  it("renders server islands with bindings", async () => {
+    const page = await (await get("/island")).text();
+    expect(page).toContain('id="fallback"');
+    const islandUrl = /\/_server-islands\/[^'"`\s]+/.exec(page)?.[0];
+    expect(islandUrl, "server island URL in the page").toBeDefined();
+    const island = await get(islandUrl!.replace(/&amp;/g, "&"));
+    expect(island.status).toBe(200);
+    expect(await island.text()).toContain(`island ${GREETING}`);
+  });
 });

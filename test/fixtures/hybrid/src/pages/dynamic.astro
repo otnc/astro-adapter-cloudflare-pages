@@ -1,0 +1,5 @@
+---
+export const prerender = false;
+const { env } = Astro.locals.runtime;
+---
+<html><body><p id="greeting">{env.GREETING}</p><p id="locale">{Astro.currentLocale}</p></body></html>
