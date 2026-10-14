@@ -8,8 +8,8 @@ The e2e tests (`npm run test:e2e`) install the packed adapter into an isolated p
 
 | Astro | Wrangler | Fixture | Result | Date |
 | --- | --- | --- | --- | --- |
-| 6.4.8 | 4.151.0 | `test/fixtures/basic` | Pass (16 checks) | 2026-10-15 |
-| 7.3.8 | 4.151.0 | `test/fixtures/basic` | Pass (16 checks) | 2026-10-15 |
+| 6.4.8 | 4.151.0 | `test/fixtures/basic` | Pass (8 build checks on `wrangler pages dev`, 3 checks in `astro dev`) | 2026-10-15 |
+| 7.3.8 | 4.151.0 | `test/fixtures/basic` | Pass (8 build checks on `wrangler pages dev`, 3 checks in `astro dev`) | 2026-10-15 |
 
 The `basic` fixture covers a prerendered page, an on-demand page, a dynamic route, an API endpoint, a prerendered 404 page, a public file, static and dynamic redirects, `astro:env` secrets, cookies, the client address, `Astro.locals.runtime` and `Astro.locals.cfContext`, and sessions in KV. It is not deployed to a real Pages project by CI; a real deployment is a manual release check.
 
@@ -31,6 +31,10 @@ The `basic` fixture covers a prerendered page, an on-demand page, a dynamic rout
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- In `astro dev`, `astro:env` reads `process.env`, not the platform proxy. The adapter copies the variables that `env.schema` declares from the proxy bindings into `process.env`, as v12 did (2026-10-15).
+- `astro dev` serves files from `public/` before routes are ready, and the first request to a page can make Vite re-optimize dependencies and drop connections. The e2e harness waits for a page to answer and warms up each route (2026-10-15).
+- A dev server spawned from Vitest inherits `NODE_ENV=test` and `VITEST*`, which made Astro 7 `astro dev` stop answering requests. The harness removes them from child processes (2026-10-15).
 
 - The official `@astrojs/cloudflare` v14 still writes `_routes.json` and `_redirects`, and depends on `@astrojs/underscore-redirects`, which this adapter also uses (2026-10-15).
 - `@astrojs/underscore-redirects` maps a dynamic redirect such as `/blog/[slug]` to its own prerendered HTML file instead of the destination. The adapter writes only static redirects to `_redirects` and lets the Worker render dynamic ones, which `_routes.json` then includes (2026-10-15).
