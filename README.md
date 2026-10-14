@@ -7,6 +7,11 @@
 [![GitHub](https://img.shields.io/github/license/otnc/astro-adapter-cloudflare-pages)](https://github.com/otnc/astro-adapter-cloudflare-pages/blob/main/LICENSE)
 [![Node](https://img.shields.io/node/v/astro-adapter-cloudflare-pages)](https://www.npmjs.com/package/astro-adapter-cloudflare-pages)
 
+This is an **unofficial, community** adapter. It is not affiliated with or endorsed by Astro or Cloudflare. The official [`@astrojs/cloudflare`](https://docs.astro.build/en/guides/integrations-guide/cloudflare/) adapter dropped Cloudflare Pages support in v13 and targets Cloudflare Workers; if you can move to Workers, use the official adapter instead.
+
+> [!WARNING]
+> This package is under development and not usable yet. No Astro version has been tested so far; see [docs/compat-notes.md](./docs/compat-notes.md).
+
 ## Install
 
 ```sh
@@ -15,19 +20,12 @@ npm install astro-adapter-cloudflare-pages
 
 ## Usage
 
-<!-- Replace with a real usage example. -->
-
-```ts
-import { greet } from 'astro-adapter-cloudflare-pages'
-```
+Usage instructions will be added with the first release.
 
 ## Requirements
 
-- Node.js >= 22
-
-## Features
-
-<!-- Some description ... -->
+- Node.js >= 22.12.0
+- Astro 6 or 7 (untested, see above)
 
 ## Contributing
 
