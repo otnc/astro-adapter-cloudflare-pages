@@ -1,0 +1,6 @@
+---
+import { Image } from "astro:assets";
+import photo from "../assets/photo.png";
+export const prerender = true;
+---
+<html><body><Image id="photo" src={photo} width={32} alt="" /></body></html>
