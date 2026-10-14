@@ -13,6 +13,7 @@ Cloudflare's [`cf`](https://www.npmjs.com/package/cf) CLI is presented as the ne
 | What does `cf deploy --prebuilt` upload? | The Build Output Specification directory `.cloudflare/output/v0/workers/<name>/` (`@cloudflare/build-output-utils`). It describes Workers, not Pages, and its authors mark it as not yet stable. |
 | Does `cf` expose a programmatic local runtime? | No. The package exports the CLI entry (`buildCli`, `main`, `runMain`) and the config helpers (`bindings`, `defineConfig`, `defineContainer`, `defineWorker`, `exports`, `triggers`). Nothing replaces Wrangler's `getPlatformProxy()`. |
 | Is there a public alternative to `getPlatformProxy()`? | Yes. [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/) is a documented package; `new Miniflare({ kvNamespaces, d1Databases, r2Buckets, bindings, ... })` and `getBindings()` give Node.js the same binding proxies. Miniflare does not read Wrangler or `cf` config files, so the bindings must be passed in. |
+| Is Wrangler itself moving away from Pages? | Partly. Since Wrangler 4.151, `wrangler pages project create` switches to Workers unless `--force` is passed (see [compat-notes.md](./compat-notes.md)). Deploying to an existing Pages project still works. |
 | When will Wrangler be retired? | No date. Neither the [`cf` announcement](https://blog.cloudflare.com/cf-cli-local-explorer/) nor the [`cf` docs for Wrangler users](https://developers.cloudflare.com/cf/wrangler/) give a timeline or mention Pages. |
 
 ## What the adapter does today
