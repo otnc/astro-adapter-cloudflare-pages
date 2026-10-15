@@ -323,3 +323,24 @@ export async function warmUp(
     }
   }
 }
+
+/** Serves a Workers-target build with `wrangler dev`, using the fixture's wrangler.jsonc. */
+export function startWranglerDev(
+  dir: string,
+  port: number
+): Promise<PagesServer> {
+  return startServer(
+    [
+      binPath(dir, "wrangler", "wrangler"),
+      "dev",
+      "--port",
+      String(port),
+      "--ip",
+      "127.0.0.1",
+      "--show-interactive-dev-session=false",
+    ],
+    dir,
+    port,
+    "/robots.txt"
+  );
+}

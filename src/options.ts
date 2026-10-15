@@ -1,3 +1,4 @@
+import type { Target } from "./build/layout.js";
 import type { ToolOption } from "./tooling/index.js";
 import type { PlatformProxyOptions } from "./tooling/platform-proxy.js";
 import type { ImageServiceOption } from "./utils/image-config.js";
@@ -59,6 +60,14 @@ export interface Options {
    * A Worker entry that replaces the adapter's, as `workerEntryPoint` did in `@astrojs/cloudflare` v12. The path is relative to the project root. The module default-exports the Worker (`{ fetch }`), and calls the adapter's handler, which `astro-adapter-cloudflare-pages/handler` exports, for the requests it does not answer itself. Pages Workers run `fetch` only, so scheduled and queue handlers are not supported.
    */
   workerEntryPoint?: string;
+  /**
+   * Where the build runs.
+   *
+   * - `"pages"`: Cloudflare Pages, with the Worker in `dist/_worker.js/` and `_routes.json`.
+   * - `"workers"`: Workers with static assets. The Worker is `dist/server/index.js` and the static files are in `dist/client/`; point `main` and `assets.directory` of your Wrangler config at them, and name the assets binding `ASSETS`.
+   * @default "pages"
+   */
+  target?: Target;
   /** Escape hatches. Everything here is unsupported. */
   unsafe?: {
     /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */
