@@ -26,3 +26,4 @@
 | Static pages have no Content-Security-Policy header | `staticHeaders` is off, or `security.csp` is not enabled | Enable `security.csp` and leave `staticHeaders` on; check `dist/_headers` after the build. |
 | `_headers has N rules, but Pages accepts at most 100` | More prerendered pages have headers than Pages allows | Prerender fewer such pages, or set `staticHeaders: false` so the policy goes into a `<meta>` tag. |
 | `cloudflare.config.ts` bindings missing in `astro dev` | The `cf` CLI has no local runtime API yet, so the adapter uses Wrangler's | Declare development bindings in a Wrangler config as well. |
+| `WebAssembly.instantiate(): Wasm code generation disallowed by embedder` in the Worker | A `.wasm` file was fetched or inlined as bytes; workerd only runs modules it loaded itself | Import the file (`import module from "./x.wasm"`) with `cloudflareModules` on, so the adapter emits it into `dist/_worker.js/`. |
