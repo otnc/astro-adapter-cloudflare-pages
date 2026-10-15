@@ -11,7 +11,7 @@ export interface PlatformProxy {
   dispose(): Promise<void>;
 }
 
-/** Bindings for the Miniflare provider, which does not read Wrangler or `cf` config files. */
+/** Bindings for the Miniflare provider, which the Wrangler config file also supplies. */
 export interface MiniflareBindingOptions {
   /** Plain variables and secrets. */
   bindings?: Record<string, string | number | boolean>;

@@ -47,11 +47,14 @@ export const messages = {
   cfRuntimeUnavailableWithoutWrangler:
     "The `cf` CLI does not provide a local runtime API yet. Install `wrangler` as a dev dependency to emulate bindings in `astro dev`. Continuing without `Astro.locals.runtime`.",
 
+  wranglerConfigInvalid: (file: string, reason: string) =>
+    `Could not read the bindings from ${file}: ${reason} Using only platformProxy.miniflare.`,
+
   noBuildOutput:
     "No build output found. Run `astro build` before `astro preview`.",
 
   noPreviewBindings:
-    "No bindings are configured for the preview. Declare variables, KV namespaces, D1 databases and R2 buckets in `platformProxy.miniflare`, or use `wrangler pages dev dist`.",
+    "No bindings are configured for the preview. Declare them in wrangler.jsonc or wrangler.toml, or in `platformProxy.miniflare`, or use `wrangler pages dev dist`.",
 
   previewListening: (url: string) => `Preview server listening on ${url}.`,
 

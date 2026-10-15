@@ -114,7 +114,7 @@ declare namespace App {
 
 ## Without Wrangler
 
-Set `tool: "miniflare"` to emulate bindings in `astro dev` with [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/) directly, without Wrangler. Miniflare does not read Wrangler or `cf` config files, so declare the bindings in the adapter options:
+Set `tool: "miniflare"` to emulate bindings in `astro dev` with [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/) directly, without Wrangler. Miniflare itself reads no config files, so the adapter reads `wrangler.jsonc`, `wrangler.json` or `wrangler.toml` for it (or the file at `platformProxy.configPath`, with `platformProxy.environment`): `vars`, `kv_namespaces`, `d1_databases`, `r2_buckets`, `compatibility_date` and `compatibility_flags`. Only the binding names are used, so every namespace, database and bucket is local. Anything in `platformProxy.miniflare` is added to that and wins on conflicts:
 
 ```js
 // astro.config.mjs
@@ -132,7 +132,7 @@ export default defineConfig({
 });
 ```
 
-Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory.
+The same bindings are used by `astro preview`. Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory.
 
 ### Previewing the build
 
@@ -202,7 +202,7 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `sessionKVBindingName` | `"SESSION"` | KV binding for the default session driver |
 | `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
 | `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
-| `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
+| `platformProxy.miniflare` | From the Wrangler config | Bindings, added to those of `wrangler.jsonc`, `wrangler.json` or `wrangler.toml`, for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
 | `staticHeaders` | `true` | Write the headers Astro computes for static pages to `_headers` (see [Static headers](#static-headers)) |
 | `cloudflareModules` | `true` | Import `.wasm`, `.bin` and `.txt` files (see [WebAssembly and other modules](#webassembly-and-other-modules)) |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
@@ -228,6 +228,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
 | Static headers (`_headers` from `security.csp`) | Tested |
 | `astro preview` (Miniflare, bindings from `platformProxy.miniflare`) | Tested |
+| Bindings from `wrangler.jsonc` and `wrangler.toml` for Miniflare (`astro dev` and `astro preview`) | Tested |
 | `.wasm`, `.bin` and `.txt` imports (`cloudflareModules`) | Tested (`wrangler pages dev`, `astro preview`, prerendering) |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |

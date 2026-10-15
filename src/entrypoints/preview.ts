@@ -7,6 +7,7 @@ import { describeError, log } from "../log.js";
 import { messages } from "../messages.js";
 import { toFetchArgs, send } from "../preview/http.js";
 import { startWorker } from "../preview/worker.js";
+import { hasBindings } from "../tooling/miniflare-options.js";
 import { getPreviewOptions } from "../utils/preview-options.js";
 import { parseStaticRedirects } from "../utils/static-redirects.js";
 
@@ -22,7 +23,7 @@ const createPreviewServer: CreatePreviewServer = async (params) => {
   }
 
   const options = getPreviewOptions();
-  if (!options) {
+  if (!options || !hasBindings(options)) {
     log.warn(logger, messages.noPreviewBindings);
   }
   const mf = await startWorker(workerDir, outDir, options ?? {});

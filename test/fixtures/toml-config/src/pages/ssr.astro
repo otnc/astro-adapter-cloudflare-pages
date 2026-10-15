@@ -1,0 +1,8 @@
+---
+const { env } = Astro.locals.runtime;
+await env.SESSION.put("key", "stored");
+---
+<html><body>
+<p id="greeting">{env.GREETING}</p>
+<p id="kv">{await env.SESSION.get("key")}</p>
+</body></html>

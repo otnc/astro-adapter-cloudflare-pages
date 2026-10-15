@@ -12,7 +12,7 @@ const IDLE_WORKER =
 const COMPATIBILITY_DATE = "2025-01-01";
 
 /**
- * Starts the local runtime with Miniflare directly, so `astro dev` works without Wrangler. Miniflare does not read Wrangler or `cf` config files, so the bindings come from the `platformProxy.miniflare` option.
+ * Starts the local runtime with Miniflare directly, so `astro dev` works without Wrangler. Miniflare reads no config files, so the integration passes it the bindings of the Wrangler config merged with the `platformProxy.miniflare` option.
  *
  * @example
  * ```js
