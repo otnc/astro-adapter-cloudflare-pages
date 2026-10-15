@@ -23,4 +23,6 @@
 | Miniflare cannot load the Worker (`ERR_MODULE_DYNAMIC_SPEC`) | The bundle contains dynamic imports that Miniflare cannot follow | Declare every file of `_worker.js/` in Miniflare's `modules` option with `modulesRoot`. |
 | `astro preview` says "does not support the preview command" | An adapter version before 0.2.0 | Update the adapter. |
 | `astro preview` logs "No bindings are configured" and pages cannot read `env` | The preview takes bindings from `platformProxy.miniflare` only | Declare them there, or use `wrangler pages dev dist`. |
+| Static pages have no Content-Security-Policy header | `staticHeaders` is off, or `security.csp` is not enabled | Enable `security.csp` and leave `staticHeaders` on; check `dist/_headers` after the build. |
+| `_headers has N rules, but Pages accepts at most 100` | More prerendered pages have headers than Pages allows | Prerender fewer such pages, or set `staticHeaders: false` so the policy goes into a `<meta>` tag. |
 | `cloudflare.config.ts` bindings missing in `astro dev` | The `cf` CLI has no local runtime API yet, so the adapter uses Wrangler's | Declare development bindings in a Wrangler config as well. |

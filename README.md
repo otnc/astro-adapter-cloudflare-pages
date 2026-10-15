@@ -138,7 +138,7 @@ Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. 
 
 `astro preview` serves the build in Miniflare, the runtime Pages uses, with the static files behind an `ASSETS` binding, the static rules of `_redirects` applied first, and `cf-connecting-ip` set from the connection. It needs `miniflare` and reads the bindings from `platformProxy.miniflare`, whichever `tool` you use. Without that option the preview starts without bindings and logs a warning; `wrangler pages dev dist` is the alternative if you keep your bindings in a Wrangler config. Set `platformProxy.miniflare.compatibilityDate` and `compatibilityFlags` (for example `["nodejs_compat"]`) if your build needs them.
 
-The preview does not apply `_routes.json` or `_headers`: it always runs the Worker for requests that have no static file.
+The preview applies `_headers` to the static files it serves, as Pages does, but not `_routes.json`: it always runs the Worker for requests that have no static file.
 
 ### Running the build in Miniflare
 
@@ -151,6 +151,12 @@ The build output (`dist/_worker.js/`) is a standard module Worker, so it also ru
 - **Compatibility date**: not newer than the workerd in your Miniflare release supports.
 
 Deploying a site to Cloudflare Pages still needs Wrangler or the Pages Git integration.
+
+## Static headers
+
+Astro computes headers for prerendered pages, for example the Content-Security-Policy that [`security.csp`](https://docs.astro.build/en/reference/configuration-reference/#securitycsp) generates. With `staticHeaders` (on by default) the adapter writes them to `_headers` in the build output, so Pages sends them with the static files instead of Astro putting the policy in a `<meta>` tag. Rules from `public/_headers` are kept, and the generated rules follow them under a comment line. Headers that describe the body (`content-type`, `content-length`, `content-encoding`) are left out, and with the `directory` build format the paths end in a slash, as Pages serves them.
+
+Pages accepts at most 100 rules in `_headers` and ignores the whole file above that, so the adapter warns when a build produces more. Set `staticHeaders: false` to go back to the `<meta>` tag.
 
 ## Sessions
 
@@ -183,6 +189,7 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
 | `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
 | `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
+| `staticHeaders` | `true` | Write the headers Astro computes for static pages to `_headers` (see [Static headers](#static-headers)) |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
 
 If `public/_routes.json` exists, the adapter keeps it and does not generate one.
@@ -204,6 +211,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Server islands | Tested |
 | i18n routing | Tested |
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
+| Static headers (`_headers` from `security.csp`) | Tested |
 | `astro preview` (Miniflare, bindings from `platformProxy.miniflare`) | Tested |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |
