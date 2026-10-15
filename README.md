@@ -134,6 +134,12 @@ export default defineConfig({
 
 Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory.
 
+### Previewing the build
+
+`astro preview` serves the build in Miniflare, the runtime Pages uses, with the static files behind an `ASSETS` binding, the static rules of `_redirects` applied first, and `cf-connecting-ip` set from the connection. It needs `miniflare` and reads the bindings from `platformProxy.miniflare`, whichever `tool` you use. Without that option the preview starts without bindings and logs a warning; `wrangler pages dev dist` is the alternative if you keep your bindings in a Wrangler config. Set `platformProxy.miniflare.compatibilityDate` and `compatibilityFlags` (for example `["nodejs_compat"]`) if your build needs them.
+
+The preview does not apply `_routes.json` or `_headers`: it always runs the Worker for requests that have no static file.
+
 ### Running the build in Miniflare
 
 The build output (`dist/_worker.js/`) is a standard module Worker, so it also runs in your own workerd or Miniflare host, for example in tests or on a platform that is not Cloudflare. It is checked with Astro 6 and 7 in Miniflare 4, without Wrangler. What the host has to provide:
@@ -176,7 +182,7 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `sessionKVBindingName` | `"SESSION"` | KV binding for the default session driver |
 | `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
 | `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
-| `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets` and `persist` (see [Without Wrangler](#without-wrangler)) |
+| `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
 
 If `public/_routes.json` exists, the adapter keeps it and does not generate one.
@@ -198,6 +204,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Server islands | Tested |
 | i18n routing | Tested |
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
+| `astro preview` (Miniflare, bindings from `platformProxy.miniflare`) | Tested |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |
 | `astro dev` without Wrangler (`tool: "miniflare"`: variables, KV, D1, R2) | Tested (variables, KV and sessions) |
