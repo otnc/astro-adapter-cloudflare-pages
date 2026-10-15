@@ -16,13 +16,14 @@ import { parseStaticRedirects } from "../utils/static-redirects.js";
  */
 const createPreviewServer: CreatePreviewServer = async (params) => {
   const { logger } = params;
-  const outDir = fileURLToPath(params.outDir);
+  const settings = getPreviewOptions();
+  const outDir = fileURLToPath(settings?.assetsDir ?? params.outDir);
   const workerDir = fileURLToPath(params.server);
   if (!existsSync(join(workerDir, "index.js"))) {
     throw new Error(messages.noBuildOutput);
   }
 
-  const options = getPreviewOptions();
+  const options = settings?.bindings;
   if (!options || !hasBindings(options)) {
     log.warn(logger, messages.noPreviewBindings);
   }

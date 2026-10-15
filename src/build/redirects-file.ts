@@ -8,11 +8,13 @@ import type {
   HookParameters,
   IntegrationResolvedRoute,
 } from "astro";
+import type { OutputLayout } from "./layout.js";
 
 interface RedirectsFileInput {
   config: AstroConfig;
   routes: IntegrationResolvedRoute[];
   dir: URL;
+  layout: OutputLayout;
   assets: HookParameters<"astro:build:done">["assets"];
 }
 
@@ -22,7 +24,7 @@ interface RedirectsFileInput {
 export async function appendRedirects(
   input: RedirectsFileInput
 ): Promise<void> {
-  const { config, routes, dir, assets } = input;
+  const { config, routes, dir, assets, layout } = input;
   const redirects = createRedirectsFromAstroRoutes({
     config,
     routeToDynamicTargetMap: new Map(
@@ -36,7 +38,7 @@ export async function appendRedirects(
   });
   if (redirects.empty()) return;
   await appendFile(
-    new URL("./_redirects", config.outDir),
+    new URL("./_redirects", layout.assets),
     printAsRedirects(redirects),
     "utf-8"
   );

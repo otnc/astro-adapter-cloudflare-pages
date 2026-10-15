@@ -34,6 +34,7 @@ import {
 import { cloudflareModulesPlugin } from "./utils/cloudflare-modules.js";
 import { withSlashes } from "./utils/files.js";
 import { resolveImageSetup, swapSharpInWorker } from "./utils/image-config.js";
+import { resolveLayout, type OutputLayout } from "./build/layout.js";
 import { loadBindingOptions } from "./utils/miniflare-bindings.js";
 import { setPreviewOptions } from "./utils/preview-options.js";
 import { toHeaderRules, type HeaderRule } from "./utils/static-headers.js";
@@ -65,6 +66,7 @@ export default function cloudflarePages(
   let compat: ResolvedCompat;
   let routes: IntegrationResolvedRoute[] = [];
   let headerRules: HeaderRule[] = [];
+  let layout: OutputLayout;
 
   return {
     name: PACKAGE_NAME,
@@ -89,6 +91,7 @@ export default function cloudflarePages(
           session = compat.createKVSessionConfig(sessionKVBindingName, session);
         }
 
+        layout = resolveLayout(options.target, userConfig.outDir);
         const image = resolveImageSetup(
           options.imageService,
           userConfig,
@@ -99,11 +102,8 @@ export default function cloudflarePages(
           ...(image.service && { image: { service: image.service } }),
           session,
           build: {
-            client: new URL(
-              `.${withSlashes(userConfig.base)}`,
-              userConfig.outDir
-            ),
-            server: new URL("./_worker.js/", userConfig.outDir),
+            client: new URL(`.${withSlashes(userConfig.base)}`, layout.assets),
+            server: layout.server,
             serverEntry: "index.js",
             redirects: false,
           },
@@ -136,9 +136,10 @@ export default function cloudflarePages(
 
       "astro:config:done": ({ setAdapter, config: finalConfig, logger }) => {
         config = finalConfig;
-        setPreviewOptions(
-          loadBindingOptions(config, options.platformProxy, logger)
-        );
+        setPreviewOptions({
+          bindings: loadBindingOptions(config, options.platformProxy, logger),
+          assetsDir: layout.assets,
+        });
         setAdapter({
           name: PACKAGE_NAME,
           entrypointResolution: "auto",
@@ -198,16 +199,19 @@ export default function cloudflarePages(
       },
 
       "astro:build:done": async ({ pages, dir, logger, assets }) => {
-        await inlineEntryFacades(new URL("./_worker.js/", config.outDir));
-        await writeHeadersFile(config.outDir, headerRules, logger);
-        await writeRoutesFile({
-          config,
-          routes,
-          prerenderedPathnames: pages.map((page) => page.pathname),
-          extend: options.routes?.extend,
-          logger,
-        });
-        await appendRedirects({ config, routes, dir, assets });
+        await inlineEntryFacades(layout.server);
+        await writeHeadersFile(layout.assets, headerRules, logger);
+        // Workers serves static files without _routes.json.
+        if (options.target !== "workers") {
+          await writeRoutesFile({
+            config,
+            routes,
+            prerenderedPathnames: pages.map((page) => page.pathname),
+            extend: options.routes?.extend,
+            logger,
+          });
+        }
+        await appendRedirects({ config, routes, dir, assets, layout });
       },
     },
   };

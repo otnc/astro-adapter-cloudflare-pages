@@ -227,6 +227,7 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
 | `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
 | `platformProxy.miniflare` | From the Wrangler config | Bindings, added to those of `wrangler.jsonc`, `wrangler.json` or `wrangler.toml`, for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
+| `target` | `"pages"` | `"pages"` or `"workers"` (see [Workers output](#workers-output)) |
 | `workerEntryPoint` | None | Path to your own Worker entry (see [Custom Worker entry](#custom-worker-entry)) |
 | `staticHeaders` | `true` | Write the headers Astro computes for static pages to `_headers` (see [Static headers](#static-headers)) |
 | `cloudflareModules` | `true` | Import `.wasm`, `.bin` and `.txt` files (see [WebAssembly and other modules](#webassembly-and-other-modules)) |
@@ -254,6 +255,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Static headers (`_headers` from `security.csp`) | Tested |
 | `astro preview` (Miniflare, bindings from `platformProxy.miniflare`) | Tested |
 | Custom Worker entry (`workerEntryPoint`) | Tested |
+| Workers output (`target: "workers"`, `wrangler dev` and `astro preview`) | Tested |
 | Bindings from `wrangler.jsonc` and `wrangler.toml` for Miniflare (`astro dev` and `astro preview`) | Tested |
 | `.wasm`, `.bin` and `.txt` imports (`cloudflareModules`) | Tested (`wrangler pages dev`, `astro preview`, prerendering) |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
@@ -267,6 +269,22 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 - Prerendering runs in Node.js, so prerendered pages cannot import `cloudflare:*` modules. Read bindings in on-demand pages instead.
 - In `astro dev`, pages run in Node.js with emulated bindings. Use `Astro.locals.runtime.env` rather than importing `cloudflare:workers`, which only exists in the deployed Worker.
 - Pages limits `_routes.json` to 100 rules. When the generated rules would exceed it, the adapter falls back to sending every request except static assets to the Worker.
+
+## Workers output
+
+With `target: "workers"` the build writes the same Worker for [Workers with static assets](https://developers.cloudflare.com/workers/static-assets/): the Worker is `dist/server/index.js`, the static files (with `_headers` and `_redirects`) are in `dist/client/`, and no `_routes.json` is written. Point your Wrangler config at them and name the assets binding `ASSETS`:
+
+```jsonc
+// wrangler.jsonc
+{
+  "name": "my-site",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-08-01",
+  "assets": { "directory": "dist/client", "binding": "ASSETS" },
+}
+```
+
+Deploy with `wrangler deploy`. `astro dev`, `astro preview` and the other options work as on Pages.
 
 ## Migrating to Workers
 

@@ -1,0 +1,8 @@
+{
+  "name": "astro-adapter-cloudflare-pages-fixture-workers",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-08-01",
+  "assets": { "directory": "dist/client", "binding": "ASSETS" },
+  "vars": { "GREETING": "hello from workers" },
+  "kv_namespaces": [{ "binding": "SESSION", "id": "local-session" }],
+}
