@@ -14,6 +14,7 @@ import {
 import type {
   AstroConfig,
   AstroIntegration,
+  AstroIntegrationLogger,
   IntegrationResolvedRoute,
 } from "astro";
 import {
@@ -38,6 +39,13 @@ import {
 } from "./utils/image-config.js";
 import { setPreviewOptions } from "./utils/preview-options.js";
 import { createRoutesJson } from "./utils/routes-json.js";
+import {
+  PAGES_HEADER_RULE_LIMIT,
+  countHeaderRules,
+  mergeHeadersFile,
+  toHeaderRules,
+  type HeaderRule,
+} from "./utils/static-headers.js";
 import { inlineEntryFacade, parseEntryFacade } from "./utils/server-chunks.js";
 
 export type { Runtime, PagesExecutionContext } from "./types.js";
@@ -82,6 +90,11 @@ export interface Options {
    * @default "compile"
    */
   imageService?: ImageServiceOption;
+  /**
+   * Writes the headers Astro computes for static pages, such as the Content-Security-Policy of `security.csp`, to `_headers`, so Pages sends them. Rules you put in `public/_headers` are kept. Turn it off to let Astro put the policy in a `<meta>` tag instead.
+   * @default true
+   */
+  staticHeaders?: boolean;
   /** Escape hatches. Everything here is unsupported. */
   unsafe?: {
     /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */
@@ -167,6 +180,25 @@ async function inlineEntryFacades(serverDir: URL): Promise<void> {
   }
 }
 
+/** Appends the generated rules to `_headers` in the output, after the rules copied from `public/`. */
+async function writeHeadersFile(
+  outDir: URL,
+  rules: HeaderRule[],
+  logger: AstroIntegrationLogger
+): Promise<void> {
+  const file = new URL("./_headers", outDir);
+  const existing = await readFile(file, "utf-8").catch(() => undefined);
+  const merged = mergeHeadersFile(existing, rules);
+  if (merged === (existing ?? "")) return;
+  await writeFile(file, merged, "utf-8");
+  const count = countHeaderRules(merged);
+  if (count > PAGES_HEADER_RULE_LIMIT) {
+    logger.warn(
+      `_headers has ${count} rules, but Pages accepts at most ${PAGES_HEADER_RULE_LIMIT}. Pages ignores the file, so no header is sent. Prerender fewer pages that have headers, or set "staticHeaders: false" so Astro puts the Content-Security-Policy in a <meta> tag.`
+    );
+  }
+}
+
 async function readRedirectSources(redirectsFile: URL): Promise<string[]> {
   try {
     const content = await readFile(redirectsFile, "utf-8");
@@ -205,6 +237,7 @@ export default function cloudflarePages(
   let tool: Tool = "wrangler";
   let compat: ResolvedCompat;
   let routes: IntegrationResolvedRoute[] = [];
+  let headerRules: HeaderRule[] = [];
 
   return {
     name: PACKAGE_NAME,
@@ -296,6 +329,7 @@ export default function cloudflarePages(
           adapterFeatures: {
             buildOutput: "server",
             middlewareMode: "classic",
+            staticHeaders: options.staticHeaders ?? true,
           },
           supportedAstroFeatures: {
             serverOutput: "stable",
@@ -391,8 +425,15 @@ export default function cloudflarePages(
         ];
       },
 
+      "astro:build:generated": ({ routeToHeaders }) => {
+        headerRules = toHeaderRules(routeToHeaders, {
+          trailingSlash: config.build.format === "directory",
+        });
+      },
+
       "astro:build:done": async ({ pages, dir, logger, assets }) => {
         await inlineEntryFacades(new URL("./_worker.js/", config.outDir));
+        await writeHeadersFile(config.outDir, headerRules, logger);
         const redirectsFile = new URL("./_redirects", config.outDir);
         const routesFile = new URL("./_routes.json", config.outDir);
 

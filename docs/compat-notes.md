@@ -8,8 +8,8 @@ The e2e tests (`npm run test:e2e`) install the packed adapter into an isolated p
 
 | Astro | Wrangler | Fixture | Result | Date |
 | --- | --- | --- | --- | --- |
-| 6.4.8 | 4.151.0 | `basic`, `hybrid`, `images`, `images-cloudflare` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
-| 7.3.8 | 4.151.0 | `basic`, `hybrid`, `advanced`, `images`, `images-cloudflare` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
+| 6.4.8 | 4.151.0 | `basic`, `hybrid`, `images`, `images-cloudflare`, `headers` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
+| 7.3.8 | 4.151.0 | `basic`, `hybrid`, `advanced`, `images`, `images-cloudflare`, `headers` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
 
 The `hybrid` fixture covers static output with on-demand pages and i18n routing, and the `advanced` fixture covers Advanced Routing with `src/fetch.ts` (Astro 7 only). The `basic` fixture covers middleware, actions, server islands, a prerendered page, an on-demand page, a dynamic route, an API endpoint, a prerendered 404 page, a public file, static and dynamic redirects, `astro:env` secrets, cookies, the client address, `Astro.locals.runtime` and `Astro.locals.cfContext`, and sessions in KV. It is not deployed to a real Pages project by CI; a real deployment is a manual release check.
 
@@ -46,6 +46,8 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- `adapterFeatures.staticHeaders` makes Astro 6 and 7 hand the headers of prerendered pages to the `astro:build:generated` hook (`routeToHeaders`) instead of writing the Content-Security-Policy into a `<meta>` tag; `security.csp: true` is the setting on both majors. The map also contains `content-type`, which the adapter does not copy to `_headers`. Pages redirects `/about` to `/about/` for `about/index.html`, so a rule for `/about` never matches the page that is served (2026-10-15).
 
 - Astro loads the preview entrypoint with `require.resolve()` on a string, so `previewEntrypoint` must be a package specifier (`astro-adapter-cloudflare-pages/preview`); a `file:` URL fails. The entrypoint runs in the same process after `astro:config:done`, so the integration hands it the `platformProxy.miniflare` option through a process-wide slot. Miniflare's `dispatchFetch()` takes a URL and request options, not a `Request` (2026-10-15).
 

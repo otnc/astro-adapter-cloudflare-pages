@@ -33,9 +33,10 @@ describe.each(astroMajors())(
       fetch(`${server.url}${path}`, { redirect: "manual", ...init });
 
     it("serves prerendered pages, public files and the prerendered 404", async () => {
-      expect(await (await get("/")).text()).toContain(
-        "Prerendered preview home"
-      );
+      const home = await get("/");
+      expect(await home.text()).toContain("Prerendered preview home");
+      // public/_headers applies to static files, as on Pages.
+      expect(home.headers.get("x-from-headers")).toBe("yes");
       expect((await get("/robots.txt")).status).toBe(200);
       const missing = await get("/missing");
       expect(missing.status).toBe(404);
