@@ -21,6 +21,10 @@ export interface MiniflareBindingOptions {
   d1Databases?: string[];
   /** Names of R2 bucket bindings to create. */
   r2Buckets?: string[];
+  /** Compatibility date of the Worker in `astro preview`. Defaults to a recent date that the installed Miniflare supports. */
+  compatibilityDate?: string;
+  /** Compatibility flags of the Worker in `astro preview`, for example `["nodejs_compat"]`. */
+  compatibilityFlags?: string[];
   /** Where to keep KV, D1 and R2 data between runs: a directory, or `true` for Miniflare's default. By default data lives in memory. */
   persist?: boolean | string;
 }

@@ -35,7 +35,11 @@
       "types": "./dist/entrypoints/image-service.d.mts",
       "default": "./dist/entrypoints/image-service.mjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./preview": {
+      "types": "./dist/entrypoints/preview.d.mts",
+      "default": "./dist/entrypoints/preview.mjs"
+    }
   },
   "files": [
     "dist",

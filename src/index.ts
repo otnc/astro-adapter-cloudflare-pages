@@ -36,6 +36,7 @@ import {
   swapSharpInWorker,
   type ImageServiceOption,
 } from "./utils/image-config.js";
+import { setPreviewOptions } from "./utils/preview-options.js";
 import { createRoutesJson } from "./utils/routes-json.js";
 import { inlineEntryFacade, parseEntryFacade } from "./utils/server-chunks.js";
 
@@ -282,6 +283,7 @@ export default function cloudflarePages(
 
       "astro:config:done": ({ setAdapter, config: finalConfig }) => {
         config = finalConfig;
+        setPreviewOptions(options.platformProxy?.miniflare);
         setAdapter({
           name: PACKAGE_NAME,
           entrypointResolution: "auto",
@@ -289,6 +291,8 @@ export default function cloudflarePages(
             "./entrypoints/server.mjs",
             import.meta.url
           ),
+          // Resolved by package name, because Astro passes the string to require.resolve().
+          previewEntrypoint: `${PACKAGE_NAME}/preview`,
           adapterFeatures: {
             buildOutput: "server",
             middlewareMode: "classic",

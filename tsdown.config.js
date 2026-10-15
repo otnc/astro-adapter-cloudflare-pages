@@ -5,6 +5,7 @@ export default defineConfig({
     "src/index.ts",
     "src/entrypoints/server.ts",
     "src/entrypoints/image-service.ts",
+    "src/entrypoints/preview.ts",
   ],
   format: ["esm"],
   dts: true,
