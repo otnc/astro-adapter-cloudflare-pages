@@ -107,13 +107,18 @@ export function prepareProject(
   fixture: string,
   tarball: string,
   /** Local runtime tools installed next to the adapter. Wrangler by default; the Miniflare fixture installs only Miniflare. */
-  tools: Record<string, string> = { wrangler: "^4" }
+  tools: Record<string, string> = { wrangler: "^4" },
+  /** Keeps a separate install of the same fixture, for example with another Miniflare major. */
+  variant?: string
 ): string {
-  const dir = join(CACHE, `astro-${astroMajor}-${fixture}`);
+  const dir = join(
+    CACHE,
+    `astro-${astroMajor}-${fixture}${variant ? `-${variant}` : ""}`
+  );
   mkdirSync(dir, { recursive: true });
 
   const manifest = {
-    name: `e2e-astro-${astroMajor}-${fixture}`,
+    name: `e2e-astro-${astroMajor}-${fixture}${variant ? `-${variant}` : ""}`,
     private: true,
     type: "module",
     dependencies: {
