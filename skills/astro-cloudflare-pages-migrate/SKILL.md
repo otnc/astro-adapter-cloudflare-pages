@@ -37,7 +37,7 @@ Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cl
    | `sessionKVBindingName` | Same |
    | `imageService` | Same values: `"compile"` (default), `"passthrough"`, `"cloudflare"`, `"custom"` |
    | `cloudflareModules` | Same: `.wasm`, `.bin` and `.txt` imports work by default; keep `false` only if the v12 config set it |
-   | `workerEntryPoint` | Not supported. Remove it and tell the user what it did. |
+   | `workerEntryPoint` | Same path option. The entry imports `handle` from the v12 handler; rewrite it to default-export `{ fetch }` and call `handler.fetch(request, env, context)` from `astro-adapter-cloudflare-pages/handler`. Durable Object exports, `scheduled` and `queue` do not work on Pages |
 
 6. Keep code that uses `Astro.locals.runtime`: `env`, `cf`, `caches` and `ctx` have the same shape as in v12, and `Astro.locals.cfContext` is also available.
 7. Keep `public/_routes.json` and `public/_redirects` if they exist. The adapter keeps an existing `_routes.json` and appends Astro's static redirects to `_redirects`.
