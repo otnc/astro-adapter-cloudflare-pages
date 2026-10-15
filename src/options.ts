@@ -50,6 +50,11 @@ export interface Options {
    * @default true
    */
   staticHeaders?: boolean;
+  /**
+   * Lets pages and endpoints import `.wasm` (also `.wasm?module`), `.bin` and `.txt` files, as `@astrojs/cloudflare` v12 did. A `.wasm` file becomes a file next to the Worker bundle, which is how WebAssembly loads on Cloudflare; `.bin` gives an `ArrayBuffer` and `.txt` a string.
+   * @default true
+   */
+  cloudflareModules?: boolean;
   /** Escape hatches. Everything here is unsupported. */
   unsafe?: {
     /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */

@@ -158,6 +158,20 @@ Astro computes headers for prerendered pages, for example the Content-Security-P
 
 Pages accepts at most 100 rules in `_headers` and ignores the whole file above that, so the adapter warns when a build produces more. Set `staticHeaders: false` to go back to the `<meta>` tag.
 
+## WebAssembly and other modules
+
+Like `@astrojs/cloudflare` v12, the adapter lets pages and endpoints import `.wasm`, `.bin` and `.txt` files.
+
+```ts
+import add from "../assets/add.wasm?module"; // WebAssembly.Module
+import blob from "../assets/blob.bin"; // ArrayBuffer
+import note from "../assets/note.txt"; // string
+
+const { exports } = new WebAssembly.Instance(add);
+```
+
+In the Worker build a `.wasm` file becomes a file next to the bundle in `dist/_worker.js/` that the bundle imports, which is the only way to load WebAssembly on Cloudflare, and Pages uploads it as a module. `.bin` and `.txt` files are inlined. Prerendering and `astro dev` run in Node.js, where the bytes are inlined for all three. Set `cloudflareModules: false` to turn the feature off.
+
 ## Sessions
 
 When `session.driver` is not set, the adapter stores [Astro sessions](https://docs.astro.build/en/guides/sessions/) in the KV namespace bound as `SESSION` (change it with `sessionKVBindingName`). Add that binding to your Pages project, or set your own `session` config.
@@ -190,6 +204,7 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
 | `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"` and for `astro preview`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets`, `persist`, and for the preview `compatibilityDate` and `compatibilityFlags` (see [Without Wrangler](#without-wrangler)) |
 | `staticHeaders` | `true` | Write the headers Astro computes for static pages to `_headers` (see [Static headers](#static-headers)) |
+| `cloudflareModules` | `true` | Import `.wasm`, `.bin` and `.txt` files (see [WebAssembly and other modules](#webassembly-and-other-modules)) |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
 
 If `public/_routes.json` exists, the adapter keeps it and does not generate one.
@@ -213,6 +228,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
 | Static headers (`_headers` from `security.csp`) | Tested |
 | `astro preview` (Miniflare, bindings from `platformProxy.miniflare`) | Tested |
+| `.wasm`, `.bin` and `.txt` imports (`cloudflareModules`) | Tested (`wrangler pages dev`, `astro preview`, prerendering) |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |
 | `astro dev` without Wrangler (`tool: "miniflare"`: variables, KV, D1, R2) | Tested (variables, KV and sessions) |

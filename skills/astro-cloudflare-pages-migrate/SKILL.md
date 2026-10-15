@@ -36,7 +36,8 @@ Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cl
    | `platformProxy` | `enabled`, `configPath`, `environment`, `persist` are supported |
    | `sessionKVBindingName` | Same |
    | `imageService` | Same values: `"compile"` (default), `"passthrough"`, `"cloudflare"`, `"custom"` |
-   | `cloudflareModules`, `workerEntryPoint` | Not supported. Remove them and tell the user what they did. |
+   | `cloudflareModules` | Same: `.wasm`, `.bin` and `.txt` imports work by default; keep `false` only if the v12 config set it |
+   | `workerEntryPoint` | Not supported. Remove it and tell the user what it did. |
 
 6. Keep code that uses `Astro.locals.runtime`: `env`, `cf`, `caches` and `ctx` have the same shape as in v12, and `Astro.locals.cfContext` is also available.
 7. Keep `public/_routes.json` and `public/_redirects` if they exist. The adapter keeps an existing `_routes.json` and appends Astro's static redirects to `_redirects`.

@@ -1,0 +1,11 @@
+---
+import addModule from "../assets/add.wasm?module";
+import note from "../assets/note.txt";
+
+export const prerender = true;
+const { exports } = new WebAssembly.Instance(addModule);
+---
+<html><body>
+<p id="prerendered-sum">{(exports.add as (a: number, b: number) => number)(20, 22)}</p>
+<p id="prerendered-note">{note.trim()}</p>
+</body></html>

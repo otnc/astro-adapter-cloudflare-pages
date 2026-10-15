@@ -1,6 +1,7 @@
 import type { AstroConfig } from "astro";
 import { log, type Logger } from "../log.js";
 import { messages } from "../messages.js";
+import type { VitePlugin } from "./vite-plugin.js";
 import { passthroughImageService } from "astro/config";
 
 export type ImageServiceOption =
@@ -12,9 +13,6 @@ export const CLOUDFLARE_SERVICE_ENTRYPOINT =
   "astro-adapter-cloudflare-pages/image-service";
 
 type ImageService = ReturnType<typeof passthroughImageService>;
-type VitePlugin = NonNullable<
-  NonNullable<AstroConfig["vite"]>["plugins"]
->[number];
 
 interface ImageSetup {
   /** The image service to set, or `undefined` to keep the user's config. */
