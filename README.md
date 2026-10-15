@@ -194,4 +194,4 @@ Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## License
 
-Distributed under the [MIT License](./LICENSE). Parts of the code are derived from `@astrojs/cloudflare` (MIT).
+Distributed under the [MIT License](./LICENSE). Parts of the code are derived from `@astrojs/cloudflare` (MIT); see [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

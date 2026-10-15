@@ -39,7 +39,8 @@
   },
   "files": [
     "dist",
-    "skills"
+    "skills",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
     "node": ">=22.12.0"
