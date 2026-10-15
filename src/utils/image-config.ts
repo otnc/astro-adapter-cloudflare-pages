@@ -1,6 +1,7 @@
-import type { AstroConfig, AstroIntegrationLogger } from "astro";
+import type { AstroConfig } from "astro";
+import { log, type Logger } from "../log.js";
+import { messages } from "../messages.js";
 import { passthroughImageService } from "astro/config";
-import type { Plugin } from "vite";
 
 export type ImageServiceOption =
   "compile" | "passthrough" | "cloudflare" | "custom";
@@ -11,8 +12,11 @@ export const CLOUDFLARE_SERVICE_ENTRYPOINT =
   "astro-adapter-cloudflare-pages/image-service";
 
 type ImageService = ReturnType<typeof passthroughImageService>;
+type VitePlugin = NonNullable<
+  NonNullable<AstroConfig["vite"]>["plugins"]
+>[number];
 
-export interface ImageSetup {
+interface ImageSetup {
   /** The image service to set, or `undefined` to keep the user's config. */
   service: ImageService | undefined;
   /** Whether the Worker build must swap sharp for the no-op service. */
@@ -26,7 +30,7 @@ export function resolveImageSetup(
   option: ImageServiceOption | undefined,
   config: AstroConfig,
   command: "dev" | "build" | "preview" | "sync",
-  logger: AstroIntegrationLogger
+  logger: Logger
 ): ImageSetup {
   const usesSharp =
     config.image.service.entrypoint === SHARP_SERVICE_ENTRYPOINT;
@@ -48,9 +52,7 @@ export function resolveImageSetup(
     case "compile":
       if (!usesSharp) return keep;
       if (command === "build") {
-        logger.info(
-          "Optimizing images of prerendered pages with sharp at build time; on-demand pages serve images unchanged."
-        );
+        log.info(logger, messages.compilingImages);
       }
       return { service: undefined, swapSharpInWorker: true };
   }
@@ -59,7 +61,7 @@ export function resolveImageSetup(
 /**
  * Resolves the sharp image service to the no-op service in the Worker (`ssr`) environment only, so prerendering still optimizes images while the Worker bundle stays free of sharp and Node.js built-ins.
  */
-export function swapSharpInWorker(): Plugin {
+export function swapSharpInWorker(): VitePlugin {
   return {
     name: "astro-adapter-cloudflare-pages:swap-sharp-in-worker",
     enforce: "pre",

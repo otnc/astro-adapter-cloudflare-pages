@@ -1,15 +1,9 @@
 import { existsSync } from "node:fs";
-import type { AstroIntegrationLogger } from "astro";
+import { log, type Logger } from "../log.js";
+import { messages } from "../messages.js";
 import type { PlatformProxy, PlatformProxyOptions } from "./platform-proxy.js";
 import { miniflareProvider } from "./miniflare.js";
 import { wranglerProvider } from "./wrangler.js";
-
-export type {
-  MiniflareBindingOptions,
-  PlatformProxy,
-  PlatformProxyOptions,
-  PlatformProxyProvider,
-} from "./platform-proxy.js";
 
 export type Tool = "wrangler" | "cf" | "miniflare";
 export type ToolOption = Tool | "auto";
@@ -46,7 +40,7 @@ export function detectTool(option: ToolOption, root: URL): Tool {
 export async function startPlatformProxy(
   tool: Tool,
   options: PlatformProxyOptions,
-  logger: AstroIntegrationLogger
+  logger: Logger
 ): Promise<PlatformProxy | undefined> {
   const useMiniflare = tool === "miniflare";
   try {
@@ -54,23 +48,20 @@ export async function startPlatformProxy(
       useMiniflare ? miniflareProvider : wranglerProvider
     ).start(options);
     if (tool === "cf") {
-      logger.warn(
-        "The `cf` CLI does not provide a local runtime API yet, so `astro dev` uses Wrangler's runtime. Bindings declared only in cloudflare.config.* are not available in development."
-      );
+      log.warn(logger, messages.cfRuntimeUnavailable);
     }
     return proxy;
   } catch (error) {
     if (!isModuleNotFound(error)) throw error;
     if (useMiniflare) {
-      logger.warn(
-        'Install `miniflare` as a dev dependency to emulate Cloudflare bindings in `astro dev` with `tool: "miniflare"`. Continuing without `Astro.locals.runtime`.'
-      );
+      log.warn(logger, messages.miniflareMissing);
       return undefined;
     }
-    logger.warn(
+    log.warn(
+      logger,
       tool === "cf"
-        ? "The `cf` CLI does not provide a local runtime API yet. Install `wrangler` as a dev dependency to emulate bindings in `astro dev`. Continuing without `Astro.locals.runtime`."
-        : "Install `wrangler` as a dev dependency to emulate Cloudflare bindings in `astro dev`. Continuing without `Astro.locals.runtime`."
+        ? messages.cfRuntimeUnavailableWithoutWrangler
+        : messages.wranglerMissing
     );
     return undefined;
   }

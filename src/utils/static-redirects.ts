@@ -1,4 +1,4 @@
-export interface StaticRedirect {
+interface StaticRedirect {
   status: number;
   location: string;
 }

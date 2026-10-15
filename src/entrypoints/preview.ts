@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import {
   createServer,
   type IncomingMessage,
@@ -9,6 +9,9 @@ import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import type { CreatePreviewServer } from "astro";
 import type { MiniflareBindingOptions } from "../tooling/platform-proxy.js";
+import { describeError, log } from "../log.js";
+import { messages } from "../messages.js";
+import { listFiles } from "../utils/files.js";
 import { getPreviewOptions } from "../utils/preview-options.js";
 import { headersFor, parseHeadersFile } from "../utils/static-headers.js";
 import { parseStaticRedirects } from "../utils/static-redirects.js";
@@ -39,12 +42,12 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 /** Every module of the Worker, declared one by one because Miniflare cannot follow the dynamic imports in the bundle. */
-function listModules(workerDir: string) {
-  return readdirSync(workerDir, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile() && /\.m?js$/.test(entry.name))
-    .map((entry) => ({
+async function listModules(workerDir: string) {
+  return (await listFiles(workerDir))
+    .filter((file) => /\.m?js$/.test(file))
+    .map((file) => ({
       type: "ESModule" as const,
-      path: join(entry.parentPath, entry.name),
+      path: join(workerDir, file),
     }));
 }
 
@@ -74,9 +77,10 @@ async function startMiniflare(
   const headerRules = existsSync(headersFile)
     ? parseHeadersFile(readFileSync(headersFile, "utf-8"))
     : [];
+  const modules = await listModules(workerDir);
   const create = (compatibilityDate: string) =>
     new Miniflare({
-      modules: listModules(workerDir),
+      modules,
       modulesRoot: workerDir,
       compatibilityDate,
       ...(options.compatibilityFlags && {
@@ -170,16 +174,12 @@ const createPreviewServer: CreatePreviewServer = async (params) => {
   const outDir = fileURLToPath(params.outDir);
   const workerDir = fileURLToPath(params.server);
   if (!existsSync(join(workerDir, "index.js"))) {
-    throw new Error(
-      "No build output found. Run `astro build` before `astro preview`."
-    );
+    throw new Error(messages.noBuildOutput);
   }
 
   const options = getPreviewOptions();
   if (!options) {
-    logger.warn(
-      "No bindings are configured for the preview. Declare variables, KV namespaces, D1 databases and R2 buckets in `platformProxy.miniflare`, or use `wrangler pages dev dist`."
-    );
+    log.warn(logger, messages.noPreviewBindings);
   }
   const mf = await startMiniflare(workerDir, outDir, options ?? {});
 
@@ -207,7 +207,7 @@ const createPreviewServer: CreatePreviewServer = async (params) => {
         }
         await send(response as unknown as Response, reply);
       } catch (error) {
-        logger.error(String(error instanceof Error ? error.stack : error));
+        log.error(logger, describeError(error));
         if (!reply.headersSent) reply.writeHead(500);
         reply.end();
       }
@@ -219,8 +219,11 @@ const createPreviewServer: CreatePreviewServer = async (params) => {
     server.listen(params.port, params.host, resolve);
   });
   const closed = new Promise<void>((resolve) => server.once("close", resolve));
-  logger.info(
-    `Preview server listening on http://${params.host ?? "localhost"}:${params.port}${params.base}`
+  log.info(
+    logger,
+    messages.previewListening(
+      `http://${params.host ?? "localhost"}:${params.port}${params.base}`
+    )
   );
 
   return {

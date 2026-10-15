@@ -7,16 +7,14 @@ import type {
 import { createApp } from "astro/app/entrypoint";
 import { env as workerEnv } from "cloudflare:workers";
 import { setGetEnv } from "astro/env/setup";
-import type { PagesExecutionContext, Runtime } from "../types.js";
+import type { Runtime } from "../types.js";
 import { createGetEnv } from "../utils/env.js";
+import { createRuntimeLocals } from "../utils/runtime-locals.js";
 
 interface PagesEnv extends Record<string, unknown> {
   /** Static asset binding that Pages injects into every advanced-mode Worker. */
   ASSETS: Fetcher;
 }
-
-const PASS_THROUGH_UNSUPPORTED =
-  "`passThroughOnException` is not available in Cloudflare Pages Functions. See https://developers.cloudflare.com/pages/platform/known-issues/#pages-functions.";
 
 // Astro 6 validates astro:env secrets while modules load, before any request provides env, so read the module-scope bindings.
 setGetEnv(createGetEnv(workerEnv));
@@ -45,30 +43,6 @@ function fetchAsset(env: PagesEnv, url: string): Promise<Response> {
   ) as unknown as Promise<Response>;
 }
 
-function createLocals(
-  env: PagesEnv,
-  request: WorkerRequest,
-  context: ExecutionContext
-): Runtime {
-  const ctx: PagesExecutionContext = {
-    waitUntil: (promise) => context.waitUntil(promise),
-    passThroughOnException: () => {
-      throw new Error(PASS_THROUGH_UNSUPPORTED);
-    },
-    props: {},
-  };
-  return {
-    runtime: {
-      env,
-      cf: request.cf as IncomingRequestCfProperties | undefined,
-      caches: (globalThis as unknown as Pick<Runtime["runtime"], "caches">)
-        .caches,
-      ctx,
-    },
-    cfContext: context,
-  };
-}
-
 async function fetch(
   request: Request,
   env: PagesEnv,
@@ -92,7 +66,14 @@ async function fetch(
 
   return app.render(request, {
     routeData,
-    locals: createLocals(env, request as unknown as WorkerRequest, context),
+    locals: createRuntimeLocals({
+      env,
+      cf: (request as unknown as WorkerRequest).cf as
+        IncomingRequestCfProperties | undefined,
+      caches: (globalThis as unknown as Pick<Runtime["runtime"], "caches">)
+        .caches,
+      context,
+    }),
     clientAddress: request.headers.get("cf-connecting-ip") ?? undefined,
     waitUntil: (promise: Promise<unknown>) => context.waitUntil(promise),
     addCookieHeader: true,

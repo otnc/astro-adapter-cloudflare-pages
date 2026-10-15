@@ -32,7 +32,7 @@ export interface RoutesJsonInput {
   extendExclude?: string[];
 }
 
-export interface RoutesJson {
+interface RoutesJson {
   version: 1;
   include: string[];
   exclude: string[];

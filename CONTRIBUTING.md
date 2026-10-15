@@ -48,6 +48,8 @@ The e2e tests keep their isolated projects in `.cache/e2e` (git-ignored), so lat
 - **Unit tests live next to the code** as `*.test.ts`. End-to-end tests live in `test/e2e`, and the sites they build in `test/fixtures`.
 - **Comments and docs are in English** and kept brief. Do not break a sentence across lines; wrap only at paragraph, list item, heading, or code block boundaries.
 - **Type-only imports use `import type`** (`verbatimModuleSyntax` is on).
+- **Messages live in `src/messages.ts` and are written through `log` from `src/log.ts`**, which uses Astro's logger (it adds the adapter name and handles colors and the terminal). A message is one line of plain ASCII, a sentence that ends with a period, with the fix after the problem and code in backticks; emoji and box-drawing characters turn into garbage in some Windows terminals. `src/messages.test.ts` checks the format and fails on a direct `logger.*` or `console.*` call. Do not add a logging library.
+- **Keep `src/index.ts` to the hooks.** Build steps live in `src/build/`, the `astro dev` connection in `src/dev/`, and shared helpers in `src/utils/`.
 - **Version-specific code goes in `src/compat/`** and **tool-specific code in `src/tooling/`**, so the hooks in `src/index.ts` stay free of Astro version checks and of Wrangler or `cf` details.
 - **Record experiments in `docs/compat-notes.md`** (and `docs/cf-notes.md` for the `cf` CLI), including negative results.
 

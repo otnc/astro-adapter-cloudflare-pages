@@ -4,15 +4,13 @@ import {
   packAdapter,
   prepareProject,
   startAstroDev,
+  textOf,
+  warmUp,
   type PagesServer,
 } from "./harness.js";
 
 const tarball = packAdapter();
 const GREETING = "hello from miniflare";
-
-function textOf(html: string, id: string): string | undefined {
-  return new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(html)?.[1];
-}
 
 describe.each(astroMajors())(
   'Astro %i: tool "miniflare" without Wrangler (miniflare fixture)',
@@ -25,19 +23,7 @@ describe.each(astroMajors())(
         miniflare: "^4",
       });
       server = await startAstroDev(dir, 4400 + major);
-      for (const path of ["/ssr", "/env", "/session"]) {
-        let streak = 0;
-        for (let attempt = 0; attempt < 20 && streak < 2; attempt++) {
-          const ok = await fetch(`${server.url}${path}`, {
-            signal: AbortSignal.timeout(10_000),
-          }).then(
-            (response) => response.ok,
-            () => false
-          );
-          streak = ok ? streak + 1 : 0;
-          if (!ok) await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
+      await warmUp(server, ["/ssr", "/env", "/session"]);
     });
 
     afterAll(() => {

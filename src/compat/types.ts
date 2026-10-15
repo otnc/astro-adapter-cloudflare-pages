@@ -1,5 +1,4 @@
-import type { AstroConfig } from "astro";
-import type { InlineConfig } from "vite";
+import type { AstroConfig, HookParameters } from "astro";
 
 type SessionConfig = Exclude<AstroConfig["session"], false>;
 
@@ -16,5 +15,7 @@ export interface AstroCompat {
    *
    * Called from `astro:build:setup` with the final build config, so the server environment can copy Astro's own output options (such as the `index.js` entry name) instead of replacing them.
    */
-  bundleServerAsOneModule(vite: InlineConfig): void;
+  bundleServerAsOneModule(
+    vite: HookParameters<"astro:build:setup">["vite"]
+  ): void;
 }

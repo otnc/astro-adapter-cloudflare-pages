@@ -1,14 +1,10 @@
 import { createRequire } from "node:module";
-import type { AstroIntegrationLogger } from "astro";
 import { AstroError } from "astro/errors";
+import { log, type Logger } from "../log.js";
+import { messages } from "../messages.js";
 import { astro6 } from "./astro6.js";
 import { astro7 } from "./astro7.js";
 import type { AstroCompat } from "./types.js";
-
-export type { AstroCompat } from "./types.js";
-
-const ISSUES_URL =
-  "https://github.com/otnc/astro-adapter-cloudflare-pages/issues";
 
 /** One entry per tested Astro major. Supporting a new major means adding its file and one line here. */
 const COMPAT_BY_MAJOR: ReadonlyMap<number, AstroCompat> = new Map([
@@ -21,7 +17,7 @@ export interface ResolvedCompat extends AstroCompat {
   tested: boolean;
 }
 
-export function readAstroVersion(root: URL): string {
+function readAstroVersion(root: URL): string {
   const require = createRequire(new URL("./package.json", root));
   const { version } = require("astro/package.json") as { version: string };
   return version;
@@ -47,16 +43,13 @@ export function resolveCompat(
 export function assertSupportedAstro(
   compat: ResolvedCompat,
   allowUntestedAstro: boolean,
-  logger: AstroIntegrationLogger
+  logger: Logger
 ): void {
   if (compat.tested) return;
   const testedMajors = [...COMPAT_BY_MAJOR.keys()].join(", ");
-  const message = `This version of astro-adapter-cloudflare-pages is tested with Astro ${testedMajors}, but Astro ${compat.astroVersion} is installed. Check ${ISSUES_URL} for a newer release or report what breaks.`;
+  const message = messages.untestedAstro(compat.astroVersion, testedMajors);
   if (!allowUntestedAstro) {
-    throw new AstroError(
-      message,
-      "Set `unsafe: { allowUntestedAstro: true }` in the adapter options to build anyway."
-    );
+    throw new AstroError(message, messages.untestedAstroHint);
   }
-  logger.warn(message);
+  log.warn(logger, message);
 }
