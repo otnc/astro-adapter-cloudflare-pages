@@ -55,6 +55,10 @@ export interface Options {
    * @default true
    */
   cloudflareModules?: boolean;
+  /**
+   * A Worker entry that replaces the adapter's, as `workerEntryPoint` did in `@astrojs/cloudflare` v12. The path is relative to the project root. The module default-exports the Worker (`{ fetch }`), and calls the adapter's handler, which `astro-adapter-cloudflare-pages/handler` exports, for the requests it does not answer itself. Pages Workers run `fetch` only, so scheduled and queue handlers are not supported.
+   */
+  workerEntryPoint?: string;
   /** Escape hatches. Everything here is unsupported. */
   unsafe?: {
     /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */

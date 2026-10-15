@@ -142,10 +142,9 @@ export default function cloudflarePages(
         setAdapter({
           name: PACKAGE_NAME,
           entrypointResolution: "auto",
-          serverEntrypoint: new URL(
-            "./entrypoints/server.mjs",
-            import.meta.url
-          ),
+          serverEntrypoint: options.workerEntryPoint
+            ? new URL(options.workerEntryPoint, config.root)
+            : new URL("./entrypoints/server.mjs", import.meta.url),
           // Resolved by package name, because Astro passes the string to require.resolve().
           previewEntrypoint: `${PACKAGE_NAME}/preview`,
           adapterFeatures: {

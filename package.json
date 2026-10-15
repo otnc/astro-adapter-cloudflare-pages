@@ -31,6 +31,10 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
+    "./handler": {
+      "types": "./dist/entrypoints/server.d.mts",
+      "default": "./dist/entrypoints/server.mjs"
+    },
     "./image-service": {
       "types": "./dist/entrypoints/image-service.d.mts",
       "default": "./dist/entrypoints/image-service.mjs"
