@@ -130,4 +130,4 @@ Trusted publishing must be configured once on npmjs.com: package **Settings → 
 
 ## License
 
-By contributing, you agree that your contributions are licensed under the [MIT License](./LICENSE).
+By contributing, you agree that your contributions are licensed under the [MIT License](./LICENSE). Keep `LICENSE` as the plain MIT text, because GitHub detects the license from it. Notices for derived code go in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

@@ -1,4 +1,4 @@
-// Ported from `@astrojs/cloudflare` v12 (`utils/generate-routes-json.js`), MIT License, Copyright (c) 2021 Fred K. Schott.
+// Ported from `@astrojs/cloudflare` v12 (`utils/generate-routes-json.js`). See THIRD_PARTY_NOTICES.md.
 
 /** Pages rejects a `_routes.json` with more include and exclude rules than this, combined. */
 export const PAGES_ROUTE_RULE_LIMIT = 100;

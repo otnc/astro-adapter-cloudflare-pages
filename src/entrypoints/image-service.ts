@@ -1,4 +1,4 @@
-// Ported from `@astrojs/cloudflare` v12 (`entrypoints/image-service.js`), MIT License, Copyright (c) 2021 Fred K. Schott.
+// Ported from `@astrojs/cloudflare` v12 (`entrypoints/image-service.js`). See THIRD_PARTY_NOTICES.md.
 import type { ExternalImageService } from "astro";
 import { baseService } from "astro/assets";
 import { isESMImportedImage, isRemoteAllowed } from "astro/assets/utils";
