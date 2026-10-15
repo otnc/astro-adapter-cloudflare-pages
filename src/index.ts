@@ -48,7 +48,7 @@ export interface RouteRule {
 
 export interface Options {
   /**
-   * Deploy tool whose config and local runtime the adapter uses. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise.
+   * Tool whose config and local runtime the adapter uses. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` runs Miniflare directly, without Wrangler; give it bindings in `platformProxy.miniflare`.
    * @default "auto"
    */
   tool?: ToolOption;
@@ -59,7 +59,7 @@ export interface Options {
       exclude?: RouteRule[];
     };
   };
-  /** Emulates Cloudflare bindings in `astro dev` with the deploy tool's local runtime (Wrangler). */
+  /** Emulates Cloudflare bindings in `astro dev` with the tool's local runtime (Wrangler or Miniflare). */
   platformProxy?: PlatformProxyOptions & {
     /** @default true */
     enabled?: boolean;

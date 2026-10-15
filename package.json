@@ -48,10 +48,14 @@
   "peerDependencies": {
     "astro": "^6 || ^7",
     "cf": "^1.0.0-beta.17",
+    "miniflare": "^4.0.0",
     "wrangler": "^4.0.0"
   },
   "peerDependenciesMeta": {
     "cf": {
+      "optional": true
+    },
+    "miniflare": {
       "optional": true
     },
     "wrangler": {
@@ -93,6 +97,7 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
     "lint-staged": "^17.6.0",
+    "miniflare": "^4.20260730.0",
     "prettier": "^3.9.10",
     "publint": "^0.3.25",
     "simple-git-hooks": "^2.14.0",

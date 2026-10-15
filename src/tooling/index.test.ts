@@ -30,6 +30,13 @@ describe("detectTool", () => {
     ).toBe("cf");
   });
 
+  it("never detects Miniflare, which reads no config file", () => {
+    expect(detectTool("auto", projectWith(["miniflare.config.js"]))).toBe(
+      "wrangler"
+    );
+    expect(detectTool("miniflare", projectWith([]))).toBe("miniflare");
+  });
+
   it("defaults to Wrangler", () => {
     expect(detectTool("auto", projectWith(["wrangler.jsonc"]))).toBe(
       "wrangler"

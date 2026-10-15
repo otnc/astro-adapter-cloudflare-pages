@@ -11,6 +11,20 @@ export interface PlatformProxy {
   dispose(): Promise<void>;
 }
 
+/** Bindings for the Miniflare provider, which does not read Wrangler or `cf` config files. */
+export interface MiniflareBindingOptions {
+  /** Plain variables and secrets. */
+  bindings?: Record<string, string | number | boolean>;
+  /** Names of KV namespace bindings to create. */
+  kvNamespaces?: string[];
+  /** Names of D1 database bindings to create. */
+  d1Databases?: string[];
+  /** Names of R2 bucket bindings to create. */
+  r2Buckets?: string[];
+  /** Where to keep KV, D1 and R2 data between runs: a directory, or `true` for Miniflare's default. By default data lives in memory. */
+  persist?: boolean | string;
+}
+
 export interface PlatformProxyOptions {
   /** Path to the tool's config file, relative to the project root. */
   configPath?: string;
@@ -18,6 +32,8 @@ export interface PlatformProxyOptions {
   environment?: string;
   /** Where to persist local binding data, or `false` to keep it in memory. */
   persist?: boolean | { path: string };
+  /** Bindings for `tool: "miniflare"`. */
+  miniflare?: MiniflareBindingOptions;
 }
 
 export interface PlatformProxyProvider {
