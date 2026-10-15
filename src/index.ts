@@ -34,6 +34,7 @@ import {
 import { cloudflareModulesPlugin } from "./utils/cloudflare-modules.js";
 import { withSlashes } from "./utils/files.js";
 import { resolveImageSetup, swapSharpInWorker } from "./utils/image-config.js";
+import { loadBindingOptions } from "./utils/miniflare-bindings.js";
 import { setPreviewOptions } from "./utils/preview-options.js";
 import { toHeaderRules, type HeaderRule } from "./utils/static-headers.js";
 
@@ -133,9 +134,11 @@ export default function cloudflarePages(
         routes = resolved;
       },
 
-      "astro:config:done": ({ setAdapter, config: finalConfig }) => {
+      "astro:config:done": ({ setAdapter, config: finalConfig, logger }) => {
         config = finalConfig;
-        setPreviewOptions(options.platformProxy?.miniflare);
+        setPreviewOptions(
+          loadBindingOptions(config, options.platformProxy, logger)
+        );
         setAdapter({
           name: PACKAGE_NAME,
           entrypointResolution: "auto",
@@ -169,7 +172,16 @@ export default function cloudflarePages(
         if (options.platformProxy?.enabled === false) return;
         const proxy = await startPlatformProxy(
           tool,
-          options.platformProxy ?? {},
+          {
+            ...options.platformProxy,
+            ...(tool === "miniflare" && {
+              miniflare: loadBindingOptions(
+                config,
+                options.platformProxy,
+                logger
+              ),
+            }),
+          },
           logger
         );
         if (!proxy) return;

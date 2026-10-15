@@ -4,15 +4,12 @@ import { messages } from "../messages.js";
 import type { PlatformProxy, PlatformProxyOptions } from "./platform-proxy.js";
 import { miniflareProvider } from "./miniflare.js";
 import { wranglerProvider } from "./wrangler.js";
+import { WRANGLER_CONFIG_FILES } from "./wrangler-config.js";
 
 export type Tool = "wrangler" | "cf" | "miniflare";
 export type ToolOption = Tool | "auto";
 
-export const WRANGLER_CONFIG_FILES = [
-  "wrangler.jsonc",
-  "wrangler.json",
-  "wrangler.toml",
-];
+export { WRANGLER_CONFIG_FILES };
 export const CF_CONFIG_FILES = [
   "cloudflare.config.ts",
   "cloudflare.config.mts",

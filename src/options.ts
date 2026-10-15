@@ -12,7 +12,7 @@ export interface RouteRule {
 
 export interface Options {
   /**
-   * Tool whose config and local runtime the adapter uses. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` runs Miniflare directly, without Wrangler; give it bindings in `platformProxy.miniflare`.
+   * Tool whose config and local runtime the adapter uses. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` runs Miniflare directly, without Wrangler; it takes bindings from the Wrangler config file (`wrangler.jsonc`, `wrangler.json` or `wrangler.toml`) and from `platformProxy.miniflare`.
    * @default "auto"
    */
   tool?: ToolOption;

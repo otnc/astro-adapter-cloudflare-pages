@@ -4,7 +4,7 @@ import { toMiniflareBindings } from "../tooling/miniflare-options.js";
 import { listFiles } from "../utils/files.js";
 import { createAssetsBinding } from "./assets.js";
 
-// Old enough for most Miniflare releases; a release that supports fewer dates reports its newest one, and the start is retried with it.
+// Old enough for most Miniflare releases. A date the installed workerd does not support, whether set here or in the Wrangler config, is retried with the newest date it reports.
 const COMPATIBILITY_DATE = "2026-08-01";
 
 /** Every module of the Worker, declared one by one because Miniflare cannot follow the dynamic imports in the bundle. `.wasm` files are the WebAssembly modules that `cloudflareModules` emits. */
@@ -61,7 +61,7 @@ export async function startWorker(
       /newest date supported by this server binary is "(\d{4}-\d{2}-\d{2})"/.exec(
         String(error instanceof Error ? error.message : error)
       )?.[1];
-    if (!newest || options.compatibilityDate) throw error;
+    if (!newest) throw error;
     mf = create(newest);
     await mf.ready;
   }

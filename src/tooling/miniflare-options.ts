@@ -15,3 +15,13 @@ export function toMiniflareBindings(options: MiniflareBindingOptions) {
     }),
   };
 }
+
+/** Whether any variable, KV namespace, D1 database or R2 bucket is declared. */
+export function hasBindings(options: MiniflareBindingOptions): boolean {
+  return Boolean(
+    options.bindings ??
+    options.kvNamespaces ??
+    options.d1Databases ??
+    options.r2Buckets
+  );
+}
