@@ -1,3 +1,4 @@
+import { loadMiniflare } from "./load-miniflare.js";
 import { toMiniflareBindings } from "./miniflare-options.js";
 import type {
   PlatformProxy,
@@ -25,9 +26,9 @@ const COMPATIBILITY_DATE = "2025-01-01";
 export const miniflareProvider: PlatformProxyProvider = {
   name: "miniflare",
   async start(options: PlatformProxyOptions): Promise<PlatformProxy> {
-    const { Miniflare } = await import("miniflare");
+    const { create } = await loadMiniflare();
 
-    const mf = new Miniflare({
+    const mf = create({
       modules: true,
       script: IDLE_WORKER,
       compatibilityDate: COMPATIBILITY_DATE,

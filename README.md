@@ -132,7 +132,7 @@ export default defineConfig({
 });
 ```
 
-The same bindings are used by `astro preview`. Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory.
+The same bindings are used by `astro preview`. Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`; Miniflare 4 and 5 both work. Data lives in memory unless you set `persist` to a directory.
 
 ### Previewing the build
 
@@ -257,6 +257,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Custom Worker entry (`workerEntryPoint`) | Tested |
 | Workers output (`target: "workers"`, `wrangler dev` and `astro preview`) | Tested |
 | Bindings from `wrangler.jsonc` and `wrangler.toml` for Miniflare (`astro dev` and `astro preview`) | Tested |
+| Miniflare 4 and 5 (`astro dev` with `tool: "miniflare"`, `astro preview`) | Tested |
 | `.wasm`, `.bin` and `.txt` imports (`cloudflareModules`) | Tested (`wrangler pages dev`, `astro preview`, prerendering) |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |

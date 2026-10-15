@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import type { MiniflareBindingOptions } from "../tooling/platform-proxy.js";
+import { loadMiniflare } from "../tooling/load-miniflare.js";
 import { toMiniflareBindings } from "../tooling/miniflare-options.js";
 import { listFiles } from "../utils/files.js";
 import { createAssetsBinding } from "./assets.js";
@@ -31,10 +32,10 @@ export async function startWorker(
   outDir: string,
   options: MiniflareBindingOptions
 ) {
-  const { Miniflare, Response } = await import("miniflare");
+  const { create: createMiniflare, Response } = await loadMiniflare();
   const modules = await listModules(workerDir);
   const create = (compatibilityDate: string) =>
-    new Miniflare({
+    createMiniflare({
       modules,
       modulesRoot: workerDir,
       compatibilityDate,
