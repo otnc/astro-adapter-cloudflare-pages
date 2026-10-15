@@ -31,6 +31,7 @@ import {
   startPlatformProxy,
   type Tool,
 } from "./tooling/index.js";
+import { cloudflareModulesPlugin } from "./utils/cloudflare-modules.js";
 import { withSlashes } from "./utils/files.js";
 import { resolveImageSetup, swapSharpInWorker } from "./utils/image-config.js";
 import { setPreviewOptions } from "./utils/preview-options.js";
@@ -111,6 +112,9 @@ export default function cloudflarePages(
             plugins: [
               ...(image.swapSharpInWorker ? [swapSharpInWorker()] : []),
               cloudflareImportsPlugin(),
+              ...((options.cloudflareModules ?? true)
+                ? [cloudflareModulesPlugin()]
+                : []),
             ],
           },
         });

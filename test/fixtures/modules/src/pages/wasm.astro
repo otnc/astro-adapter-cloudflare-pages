@@ -1,0 +1,13 @@
+---
+import addModule from "../assets/add.wasm";
+import blob from "../assets/blob.bin";
+import note from "../assets/note.txt";
+
+const { exports } = new WebAssembly.Instance(addModule);
+const add = exports.add as (a: number, b: number) => number;
+---
+<html><body>
+<p id="sum">{add(2, 3)}</p>
+<p id="blob">{[...new Uint8Array(blob)].join(",")}</p>
+<p id="note">{note.trim()}</p>
+</body></html>

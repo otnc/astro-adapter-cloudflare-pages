@@ -41,14 +41,22 @@ const CONTENT_TYPES: Record<string, string> = {
   ".webmanifest": "application/manifest+json",
 };
 
-/** Every module of the Worker, declared one by one because Miniflare cannot follow the dynamic imports in the bundle. */
-async function listModules(workerDir: string) {
-  return (await listFiles(workerDir))
-    .filter((file) => /\.m?js$/.test(file))
-    .map((file) => ({
-      type: "ESModule" as const,
-      path: join(workerDir, file),
-    }));
+/** Every module of the Worker, declared one by one because Miniflare cannot follow the dynamic imports in the bundle. `.wasm` files are the WebAssembly modules that `cloudflareModules` emits. */
+async function listModules(
+  workerDir: string
+): Promise<{ type: "ESModule" | "CompiledWasm"; path: string }[]> {
+  const modules: { type: "ESModule" | "CompiledWasm"; path: string }[] = [];
+  for (const file of await listFiles(workerDir)) {
+    const path = join(workerDir, file);
+    if (/\.m?js$/.test(file)) modules.push({ type: "ESModule", path });
+    else if (file.endsWith(".wasm"))
+      modules.push({ type: "CompiledWasm", path });
+  }
+  // Miniflare runs the first module as the entry.
+  const entry = join(workerDir, "index.js");
+  return modules.sort(
+    (a, b) => Number(b.path === entry) - Number(a.path === entry)
+  );
 }
 
 function findFile(root: string, pathname: string): string | undefined {
