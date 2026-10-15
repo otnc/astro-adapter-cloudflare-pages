@@ -4,17 +4,14 @@ import {
   packAdapter,
   prepareProject,
   startAstroDev,
+  textOf,
+  warmUp,
   type PagesServer,
 } from "./harness.js";
 
 const tarball = packAdapter();
 // Values come from test/fixtures/basic/wrangler.jsonc through Wrangler's platform proxy.
 const VARS_GREETING = "hello from vars";
-
-// `astro dev` adds attributes such as data-astro-source-file, so match the element by id only.
-function textOf(html: string, id: string): string | undefined {
-  return new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(html)?.[1];
-}
 
 describe.each(astroMajors())(
   "Astro %i: basic fixture in astro dev",
@@ -24,20 +21,7 @@ describe.each(astroMajors())(
     beforeAll(async () => {
       const dir = prepareProject(major, "basic", tarball);
       server = await startAstroDev(dir, 4300 + major);
-      // The first request to a page can make Vite optimize new dependencies and reload, dropping connections. Visit each page until it answers twice in a row.
-      for (const path of ["/ssr", "/env", "/session"]) {
-        let streak = 0;
-        for (let attempt = 0; attempt < 20 && streak < 2; attempt++) {
-          const ok = await fetch(`${server.url}${path}`, {
-            signal: AbortSignal.timeout(10_000),
-          }).then(
-            (response) => response.ok,
-            () => false
-          );
-          streak = ok ? streak + 1 : 0;
-          if (!ok) await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
+      await warmUp(server, ["/ssr", "/env", "/session"]);
     });
 
     afterAll(() => {

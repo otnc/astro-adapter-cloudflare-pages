@@ -294,3 +294,32 @@ export function astroMajors(): number[] {
     .map((value) => Number.parseInt(value.trim(), 10))
     .filter((value) => Number.isInteger(value));
 }
+
+/**
+ * The text of the element with an id. `astro dev` adds attributes such as data-astro-source-file to elements, so the element is matched by its id only.
+ */
+export function textOf(html: string, id: string): string | undefined {
+  return new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(html)?.[1];
+}
+
+/**
+ * Visits each path until it answers successfully twice in a row. The first request to a page can make Vite optimize new dependencies and reload, which drops connections, so the tests start only after this settles.
+ */
+export async function warmUp(
+  server: PagesServer,
+  paths: string[]
+): Promise<void> {
+  for (const path of paths) {
+    let streak = 0;
+    for (let attempt = 0; attempt < 20 && streak < 2; attempt++) {
+      const ok = await fetch(`${server.url}${path}`, {
+        signal: AbortSignal.timeout(10_000),
+      }).then(
+        (response) => response.ok,
+        () => false
+      );
+      streak = ok ? streak + 1 : 0;
+      if (!ok) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+}

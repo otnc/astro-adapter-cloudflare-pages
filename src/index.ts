@@ -1,218 +1,43 @@
-import {
-  appendFile,
-  readFile,
-  readdir,
-  rm,
-  rmdir,
-  writeFile,
-} from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import {
-  createRedirectsFromAstroRoutes,
-  printAsRedirects,
-} from "@astrojs/underscore-redirects";
 import type {
   AstroConfig,
   AstroIntegration,
-  AstroIntegrationLogger,
   IntegrationResolvedRoute,
 } from "astro";
+import { appendRedirects } from "./build/redirects-file.js";
+import { writeHeadersFile } from "./build/headers-file.js";
+import { writeRoutesFile } from "./build/routes-file.js";
+import { inlineEntryFacades } from "./build/server-bundle.js";
+import {
+  cloudflareImportsPlugin,
+  configureWorkerBuild,
+} from "./build/worker-vite.js";
 import {
   assertSupportedAstro,
   resolveCompat,
   type ResolvedCompat,
 } from "./compat/index.js";
-import type { PlatformProxyOptions } from "./tooling/platform-proxy.js";
+import { connectDevRuntime } from "./dev/runtime.js";
+import { log } from "./log.js";
+import { messages } from "./messages.js";
+import {
+  DEFAULT_SESSION_KV_BINDING_NAME,
+  PACKAGE_NAME,
+  type Options,
+} from "./options.js";
 import {
   CF_CONFIG_FILES,
   WRANGLER_CONFIG_FILES,
   detectTool,
   startPlatformProxy,
   type Tool,
-  type ToolOption,
 } from "./tooling/index.js";
-import { createGetEnv } from "./utils/env.js";
-import {
-  resolveImageSetup,
-  swapSharpInWorker,
-  type ImageServiceOption,
-} from "./utils/image-config.js";
+import { withSlashes } from "./utils/files.js";
+import { resolveImageSetup, swapSharpInWorker } from "./utils/image-config.js";
 import { setPreviewOptions } from "./utils/preview-options.js";
-import { createRoutesJson } from "./utils/routes-json.js";
-import {
-  PAGES_HEADER_RULE_LIMIT,
-  countHeaderRules,
-  mergeHeadersFile,
-  toHeaderRules,
-  type HeaderRule,
-} from "./utils/static-headers.js";
-import { inlineEntryFacade, parseEntryFacade } from "./utils/server-chunks.js";
+import { toHeaderRules, type HeaderRule } from "./utils/static-headers.js";
 
+export type { Options, RouteRule } from "./options.js";
 export type { Runtime, PagesExecutionContext } from "./types.js";
-
-export interface RouteRule {
-  /** A `_routes.json` pattern such as `/api/*`. */
-  pattern: string;
-}
-
-export interface Options {
-  /**
-   * Tool whose config and local runtime the adapter uses. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` runs Miniflare directly, without Wrangler; give it bindings in `platformProxy.miniflare`.
-   * @default "auto"
-   */
-  tool?: ToolOption;
-  /** Adds rules to the generated `_routes.json`. Ignored when `public/_routes.json` exists. */
-  routes?: {
-    extend?: {
-      include?: RouteRule[];
-      exclude?: RouteRule[];
-    };
-  };
-  /** Emulates Cloudflare bindings in `astro dev` with the tool's local runtime (Wrangler or Miniflare). */
-  platformProxy?: PlatformProxyOptions & {
-    /** @default true */
-    enabled?: boolean;
-  };
-  /**
-   * KV binding used by the default session driver when `session.driver` is not set.
-   * @default "SESSION"
-   */
-  sessionKVBindingName?: string;
-  /**
-   * How images are optimized. sharp cannot run on Cloudflare, so on-demand pages never use it.
-   *
-   * - `"compile"`: optimize images of prerendered pages with sharp at build time, and serve images of on-demand pages unchanged.
-   * - `"passthrough"`: never optimize.
-   * - `"cloudflare"`: resize through Cloudflare Images transformations (`/cdn-cgi/image/`), which must be enabled on the zone. `astro dev` keeps sharp.
-   * - `"custom"`: use `image.service` as configured.
-   *
-   * A non-sharp `image.service` is always kept.
-   * @default "compile"
-   */
-  imageService?: ImageServiceOption;
-  /**
-   * Writes the headers Astro computes for static pages, such as the Content-Security-Policy of `security.csp`, to `_headers`, so Pages sends them. Rules you put in `public/_headers` are kept. Turn it off to let Astro put the policy in a `<meta>` tag instead.
-   * @default true
-   */
-  staticHeaders?: boolean;
-  /** Escape hatches. Everything here is unsupported. */
-  unsafe?: {
-    /** Lets the build continue on an Astro major that this version of the adapter has not been tested with. */
-    allowUntestedAstro?: boolean;
-  };
-}
-
-const PACKAGE_NAME = "astro-adapter-cloudflare-pages";
-const DEFAULT_SESSION_KV_BINDING_NAME = "SESSION";
-const PASS_THROUGH_UNSUPPORTED =
-  "`passThroughOnException` is not available in Cloudflare Pages Functions. See https://developers.cloudflare.com/pages/platform/known-issues/#pages-functions.";
-
-function withSlashes(path: string): string {
-  return `/${path}/`.replace(/\/+/g, "/");
-}
-
-async function fileExists(url: URL): Promise<boolean> {
-  try {
-    await readFile(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function listPublicFiles(publicDir: URL): Promise<string[]> {
-  try {
-    const entries = await readdir(publicDir, {
-      recursive: true,
-      withFileTypes: true,
-    });
-    const root = fileURLToPath(publicDir);
-    return entries
-      .filter((entry) => entry.isFile())
-      .map((entry) =>
-        `${entry.parentPath}/${entry.name}`
-          .slice(root.length)
-          .replace(/\\/g, "/")
-          .replace(/^\/+/, "")
-      );
-  } catch {
-    return [];
-  }
-}
-
-// Pages re-bundles _worker.js/ and cannot resolve chunks that import back from the entry, so fold such re-export-only chunks into the entry.
-async function inlineEntryFacades(serverDir: URL): Promise<void> {
-  const entryFile = new URL("./index.js", serverDir);
-  let entry: string;
-  try {
-    entry = await readFile(entryFile, "utf-8");
-  } catch {
-    return;
-  }
-  const files = await readdir(serverDir, {
-    recursive: true,
-    withFileTypes: true,
-  });
-  const root = fileURLToPath(serverDir);
-  let changed = false;
-  const emptiedDirs = new Set<string>();
-  for (const file of files) {
-    if (!file.isFile() || !/\.m?js$/.test(file.name)) continue;
-    const path = `${file.parentPath}/${file.name}`;
-    const relativePath = path
-      .slice(root.length)
-      .replace(/\\/g, "/")
-      .replace(/^\/+/, "");
-    if (relativePath === "index.js") continue;
-    const names = parseEntryFacade(await readFile(path, "utf-8"));
-    if (!names) continue;
-    const rewritten = inlineEntryFacade(entry, relativePath, names);
-    if (rewritten === entry) continue;
-    entry = rewritten;
-    changed = true;
-    await rm(path);
-    emptiedDirs.add(file.parentPath);
-  }
-  if (changed) await writeFile(entryFile, entry, "utf-8");
-  for (const dir of emptiedDirs) {
-    // rmdir removes only empty directories, so a folder that still holds other chunks stays.
-    await rmdir(dir).catch(() => {});
-  }
-}
-
-/** Appends the generated rules to `_headers` in the output, after the rules copied from `public/`. */
-async function writeHeadersFile(
-  outDir: URL,
-  rules: HeaderRule[],
-  logger: AstroIntegrationLogger
-): Promise<void> {
-  const file = new URL("./_headers", outDir);
-  const existing = await readFile(file, "utf-8").catch(() => undefined);
-  const merged = mergeHeadersFile(existing, rules);
-  if (merged === (existing ?? "")) return;
-  await writeFile(file, merged, "utf-8");
-  const count = countHeaderRules(merged);
-  if (count > PAGES_HEADER_RULE_LIMIT) {
-    logger.warn(
-      `_headers has ${count} rules, but Pages accepts at most ${PAGES_HEADER_RULE_LIMIT}. Pages ignores the file, so no header is sent. Prerender fewer pages that have headers, or set "staticHeaders: false" so Astro puts the Content-Security-Policy in a <meta> tag.`
-    );
-  }
-}
-
-async function readRedirectSources(redirectsFile: URL): Promise<string[]> {
-  try {
-    const content = await readFile(redirectsFile, "utf-8");
-    return content
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("#"))
-      .map((line) => line.split(/\s+/))
-      .filter((parts) => parts.length >= 2)
-      .map((parts) => parts[0]!);
-  } catch {
-    return [];
-  }
-}
 
 /**
  * Creates the Astro integration that builds on-demand rendered sites for Cloudflare Pages advanced mode (`_worker.js`).
@@ -258,9 +83,7 @@ export default function cloudflarePages(
 
         let session = userConfig.session;
         if (session !== false && !session?.driver) {
-          logger.info(
-            `Enabling sessions with Cloudflare KV using the "${sessionKVBindingName}" binding. Add a KV namespace with that binding to your Pages project to use sessions.`
-          );
+          log.info(logger, messages.enablingSessions(sessionKVBindingName));
           session = compat.createKVSessionConfig(sessionKVBindingName, session);
         }
 
@@ -287,15 +110,7 @@ export default function cloudflarePages(
             ssr: { noExternal: [PACKAGE_NAME] },
             plugins: [
               ...(image.swapSharpInWorker ? [swapSharpInWorker()] : []),
-              {
-                name: `${PACKAGE_NAME}:cloudflare-imports`,
-                enforce: "pre",
-                resolveId(source) {
-                  return source.startsWith("cloudflare:")
-                    ? { id: source, external: true }
-                    : null;
-                },
-              },
+              cloudflareImportsPlugin(),
             ],
           },
         });
@@ -338,8 +153,7 @@ export default function cloudflarePages(
             i18nDomains: "experimental",
             sharpImageService: {
               support: "limited",
-              message:
-                "Cloudflare Pages cannot run sharp at request time, so the adapter switches the default image service to passthrough.",
+              message: messages.sharpUnsupported,
               suppress: "default",
             },
             envGetSecret: "stable",
@@ -355,74 +169,11 @@ export default function cloudflarePages(
           logger
         );
         if (!proxy) return;
-        server.httpServer?.on("close", () => {
-          void proxy.dispose();
-        });
-
-        const scope = globalThis as { __env__?: Record<string, unknown> };
-        scope.__env__ ??= {};
-        scope.__env__[sessionKVBindingName] = proxy.env[sessionKVBindingName];
-
-        // In dev, astro:env reads process.env, so copy the variables the schema declares from the bindings.
-        const getEnv = createGetEnv(proxy.env);
-        for (const key of Object.keys(config.env?.schema ?? {})) {
-          const value = getEnv(key);
-          if (value !== undefined) process.env[key] = value;
-        }
-
-        const clientLocalsSymbol = Symbol.for("astro.locals");
-        server.middlewares.use((req, _res, next) => {
-          Reflect.set(req, clientLocalsSymbol, {
-            runtime: {
-              env: proxy.env,
-              cf: proxy.cf,
-              caches: proxy.caches,
-              ctx: {
-                waitUntil: (promise: Promise<unknown>) =>
-                  proxy.ctx.waitUntil(promise),
-                passThroughOnException: () => {
-                  throw new Error(PASS_THROUGH_UNSUPPORTED);
-                },
-                props: {},
-              },
-            },
-            cfContext: proxy.ctx,
-          });
-          next();
-        });
+        connectDevRuntime({ server, proxy, config, sessionKVBindingName });
       },
 
       "astro:build:setup": ({ vite, target }) => {
-        if (target !== "server") return;
-        compat.bundleServerAsOneModule(vite);
-        // Prerendering runs in its own environment, which Astro 6 rebuilds from scratch, so add this package to its bundled modules here rather than in astro:config:setup.
-        const prerender = ((vite.environments ??= {}).prerender ??= {});
-        const noExternal = prerender.resolve?.noExternal;
-        if (noExternal !== true) {
-          prerender.resolve = {
-            ...prerender.resolve,
-            noExternal: [
-              ...(Array.isArray(noExternal)
-                ? noExternal
-                : noExternal
-                  ? [noExternal]
-                  : []),
-              PACKAGE_NAME,
-            ],
-          };
-        }
-        vite.ssr ??= {};
-        vite.ssr.target = "webworker";
-        vite.ssr.noExternal = true;
-        vite.ssr.resolve ??= {};
-        vite.ssr.resolve.conditions = [
-          "workerd",
-          "worker",
-          "browser",
-          "module",
-          "import",
-          "default",
-        ];
+        if (target === "server") configureWorkerBuild(vite, compat);
       },
 
       "astro:build:generated": ({ routeToHeaders }) => {
@@ -434,49 +185,14 @@ export default function cloudflarePages(
       "astro:build:done": async ({ pages, dir, logger, assets }) => {
         await inlineEntryFacades(new URL("./_worker.js/", config.outDir));
         await writeHeadersFile(config.outDir, headerRules, logger);
-        const redirectsFile = new URL("./_redirects", config.outDir);
-        const routesFile = new URL("./_routes.json", config.outDir);
-
-        if (await fileExists(routesFile)) {
-          logger.info(
-            "Keeping the existing _routes.json instead of generating one."
-          );
-        } else {
-          const routesJson = createRoutesJson({
-            base: config.base,
-            assetsDir: config.build.assets,
-            publicFiles: await listPublicFiles(config.publicDir),
-            routes,
-            prerenderedPathnames: pages.map((page) => page.pathname),
-            redirectSources: await readRedirectSources(redirectsFile),
-            extendInclude: options.routes?.extend?.include?.map(
-              (rule) => rule.pattern
-            ),
-            extendExclude: options.routes?.extend?.exclude?.map(
-              (rule) => rule.pattern
-            ),
-          });
-          await writeFile(
-            routesFile,
-            `${JSON.stringify(routesJson, null, 2)}\n`,
-            "utf-8"
-          );
-        }
-
-        const redirects = createRedirectsFromAstroRoutes({
+        await writeRoutesFile({
           config,
-          routeToDynamicTargetMap: new Map(
-            routes
-              .filter((route) => route.type === "redirect" && route.pathname)
-              .map((route) => [route, ""])
-          ),
-          dir,
-          buildOutput: "server",
-          assets,
+          routes,
+          prerenderedPathnames: pages.map((page) => page.pathname),
+          extend: options.routes?.extend,
+          logger,
         });
-        if (!redirects.empty()) {
-          await appendFile(redirectsFile, printAsRedirects(redirects), "utf-8");
-        }
+        await appendRedirects({ config, routes, dir, assets });
       },
     },
   };
