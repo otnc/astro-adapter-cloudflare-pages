@@ -1,0 +1,8 @@
+---
+const { env } = Astro.locals.runtime;
+Astro.cookies.set("visited", "yes");
+---
+<html><body>
+<p id="greeting">{env.GREETING}</p>
+<p id="client">{Astro.clientAddress}</p>
+</body></html>
