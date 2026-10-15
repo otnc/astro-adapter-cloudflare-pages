@@ -1,0 +1,12 @@
+---
+const { env, cf } = Astro.locals.runtime;
+await Astro.locals.runtime.env.SESSION.put("probe", "stored");
+const stored = await Astro.locals.runtime.env.SESSION.get("probe");
+Astro.locals.cfContext.waitUntil(Promise.resolve());
+---
+<html><body>
+<p id="greeting">{env.GREETING}</p>
+<p id="kv">{stored}</p>
+<p id="cf">{typeof cf}</p>
+<p id="has-cf-context">{String(typeof Astro.locals.cfContext?.waitUntil === "function")}</p>
+</body></html>
