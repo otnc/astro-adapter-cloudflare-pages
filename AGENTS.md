@@ -29,6 +29,8 @@ Run `npm run ci && npm run typecheck && npm run test && npm run build && npm run
 - Keep Wrangler and the `cf` CLI behind the interfaces in `src/tooling/`. The adapter must never shell out to either CLI during a build.
 - Record every experiment result about Astro or Pages behavior in `docs/compat-notes.md`. When an experiment contradicts existing notes, trust the experiment and update the notes.
 - Do not add an adapter option without a test that uses it.
+- Write user-facing text only in `src/messages.ts` and output it with `log` from `src/log.ts` (Astro's logger). One line of plain ASCII, ending with a period. Never call `logger.*` or `console.*` elsewhere, and do not add a logging library; `src/messages.test.ts` enforces this.
+- Keep `src/index.ts` to the hooks, and put build steps in `src/build/` and the dev connection in `src/dev/`. Before adding a helper, check `src/utils/` for one that exists (for example `listFiles` and `createRuntimeLocals`).
 
 ## Git workflow
 
