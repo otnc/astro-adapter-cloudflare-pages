@@ -1,6 +1,6 @@
 {
   "name": "astro-adapter-cloudflare-pages",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Astro adapter for deploying on-demand rendered sites to Cloudflare Pages or Miniflare (Astro 6, 7 or later)",
   "keywords": [
     "astro",
