@@ -112,6 +112,28 @@ declare namespace App {
 
 [`astro:env`](https://docs.astro.build/en/guides/environment-variables/) server variables and secrets are read from the same bindings, both in production and in `astro dev`.
 
+## Without Wrangler
+
+Set `tool: "miniflare"` to emulate bindings in `astro dev` with [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/) directly, without Wrangler. Miniflare does not read Wrangler or `cf` config files, so declare the bindings in the adapter options:
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  adapter: cloudflarePages({
+    tool: "miniflare",
+    platformProxy: {
+      miniflare: {
+        bindings: { GREETING: "hello" },
+        kvNamespaces: ["SESSION"],
+      },
+    },
+  }),
+});
+```
+
+Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory. This covers `astro dev` only: building needs no tool, and deploying still needs Wrangler or the Pages Git integration.
+
 ## Sessions
 
 When `session.driver` is not set, the adapter stores [Astro sessions](https://docs.astro.build/en/guides/sessions/) in the KV namespace bound as `SESSION` (change it with `sessionKVBindingName`). Add that binding to your Pages project, or set your own `session` config.
@@ -141,7 +163,8 @@ If you configure an `image.service` other than sharp, the adapter keeps it. `ast
 | `platformProxy.persist` | Wrangler's default | Where to keep local binding data, or `false` |
 | `sessionKVBindingName` | `"SESSION"` | KV binding for the default session driver |
 | `imageService` | `"compile"` | `"compile"`, `"passthrough"`, `"cloudflare"` or `"custom"` (see [Images](#images)) |
-| `tool` | `"auto"` | `"wrangler"` or `"cf"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists. |
+| `tool` | `"auto"` | `"wrangler"`, `"cf"` or `"miniflare"`. `"auto"` picks `cf` when a `cloudflare.config.*` file exists, and Wrangler otherwise. `"miniflare"` is never picked automatically. |
+| `platformProxy.miniflare` | None | Bindings for `tool: "miniflare"`: `bindings` (variables and secrets), `kvNamespaces`, `d1Databases`, `r2Buckets` and `persist` (see [Without Wrangler](#without-wrangler)) |
 | `unsafe.allowUntestedAstro` | `false` | Build on an untested Astro major with a warning instead of an error |
 
 If `public/_routes.json` exists, the adapter keeps it and does not generate one.
@@ -165,6 +188,7 @@ If `public/_routes.json` exists, the adapter keeps it and does not generate one.
 | Astro 7 Advanced Routing (`src/fetch.ts`) | Tested |
 | Astro 6 experimental Advanced Routing (`src/app.ts`) | Untested |
 | Image optimization (`compile` and `cloudflare` image services) | Tested |
+| `astro dev` without Wrangler (`tool: "miniflare"`: variables, KV, D1, R2) | Tested (variables, KV and sessions) |
 | `cf` CLI | Detected from `cloudflare.config.*`, but it cannot deploy to Pages and has no local runtime API yet; `astro dev` uses Wrangler |
 
 ## Known limitations

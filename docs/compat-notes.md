@@ -17,6 +17,10 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | --- | --- | --- | --- | --- |
 | `basic` on a throwaway Pages project (`*.pages.dev`) with a KV namespace and a `GREETING` variable | 6.4.8, 7.3.8 | 4.151.0 | Pass: 16 checks each (prerendered page, public file, on-demand page with vars, cookies, client address, dynamic route, endpoint, `astro:env`, 404, static and dynamic redirects, sessions in KV, middleware, actions, server islands) | 2026-10-15 |
 
+| Astro | Miniflare | Fixture | Result | Date |
+| --- | --- | --- | --- | --- |
+| 6.4.8, 7.3.8 | 4.20260730.0 | `miniflare` (`astro dev` with `tool: "miniflare"`, no Wrangler installed) | Pass: variables, KV, `cf`, `astro:env`, sessions | 2026-10-15 |
+
 ## Open questions
 
 | # | Question | Status |
@@ -37,6 +41,8 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- Miniflare 4.20260730 rejects a compatibility date newer than its bundled workerd supports ("2026-08-06"). The idle Worker that the Miniflare provider starts uses `2025-01-01`, which every release accepts (2026-10-15).
 
 - Wrangler 4.151 `wrangler pages project create` delegates to "the latest version of Cloudflare Pages, now part of Cloudflare Workers" unless `--force` is passed: it ran autoconfiguration on the current directory (`astro add cloudflare`, `package.json` and `tsconfig.json` edits, a Workers `wrangler.jsonc`) and then failed. With `--force` it creates a classic Pages project, and `wrangler pages deploy` to that project works as before (2026-10-15).
 
