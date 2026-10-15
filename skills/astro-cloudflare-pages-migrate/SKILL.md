@@ -5,7 +5,7 @@ description: Migrate an Astro site on Cloudflare Pages from the official @astroj
 
 # astro-cloudflare-pages-migrate
 
-Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cloudflare-pages` while upgrading Astro to 6 or 7, after confirming that the user wants to stay on Pages rather than move to Workers.
+Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cloudflare-pages` while upgrading Astro to 6 or 7, after asking whether the user wants to stay on Pages or move to Workers.
 
 ## When to use
 
@@ -16,7 +16,7 @@ Move a Cloudflare Pages site from `@astrojs/cloudflare` v12 to `astro-adapter-cl
 ## Instructions
 
 1. Ask which path the user wants, and explain the trade-off in two sentences:
-   - **Move to Workers** (recommended by Cloudflare): upgrade Astro, keep `@astrojs/cloudflare` v13 or later, and follow https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/. Stop using this skill.
+   - **Move to Workers**: upgrade Astro, keep `@astrojs/cloudflare` v13 or later, and follow https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/. Stop using this skill.
    - **Stay on Pages**: continue with the steps below.
 2. Upgrade Astro to 6 or 7 with its upgrade guide, without mixing in unrelated changes.
 3. Replace the adapter with the project's package manager:

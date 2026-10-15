@@ -20,6 +20,7 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | Astro | Miniflare | Fixture | Result | Date |
 | --- | --- | --- | --- | --- |
 | 6.4.8, 7.3.8 | 4.20260730.0 | `miniflare` (`astro dev` with `tool: "miniflare"`, no Wrangler installed) | Pass: variables, KV, `cf`, `astro:env`, sessions | 2026-10-15 |
+| 6.4.8, 7.3.8 | 4.20260730.0 | `basic` build output run in Miniflare with an `ASSETS` service binding and no Wrangler | Pass: prerendered and on-demand pages, cookies, client address, middleware, actions, server islands, `astro:env`, sessions, 404 | 2026-10-15 |
 
 ## Open questions
 
@@ -41,6 +42,8 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- Miniflare cannot follow the dynamic import specifiers in the Worker bundle (`ERR_MODULE_DYNAMIC_SPEC`), so a host has to declare every file of `_worker.js/` as a module. `Astro.clientAddress` is read from `cf-connecting-ip`, which only Cloudflare sets, so a host without Cloudflare's edge must set it, or pages using `Astro.clientAddress` fail with `ClientAddressNotAvailable` (2026-10-15).
 
 - Miniflare 4.20260730 rejects a compatibility date newer than its bundled workerd supports ("2026-08-06"). The idle Worker that the Miniflare provider starts uses `2025-01-01`, which every release accepts (2026-10-15).
 

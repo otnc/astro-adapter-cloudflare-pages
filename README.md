@@ -1,6 +1,6 @@
 # astro-adapter-cloudflare-pages
 
-> Astro adapter for deploying on-demand rendered sites to Cloudflare Pages (Astro 6, 7 or later)
+> Astro adapter for deploying on-demand rendered sites to Cloudflare Pages or Miniflare (Astro 6, 7 or later)
 
 [![npm](https://img.shields.io/npm/v/astro-adapter-cloudflare-pages)](https://www.npmjs.com/package/astro-adapter-cloudflare-pages)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/otnc/astro-adapter-cloudflare-pages/ci.yml?branch=main)](https://github.com/otnc/astro-adapter-cloudflare-pages/actions)
@@ -132,7 +132,19 @@ export default defineConfig({
 });
 ```
 
-Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory. This covers `astro dev` only: building needs no tool, and deploying still needs Wrangler or the Pages Git integration.
+Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`. Data lives in memory unless you set `persist` to a directory.
+
+### Running the build in Miniflare
+
+The build output (`dist/_worker.js/`) is a standard module Worker, so it also runs in your own workerd or Miniflare host, for example in tests or on a platform that is not Cloudflare. It is checked with Astro 6 and 7 in Miniflare 4, without Wrangler. What the host has to provide:
+
+- **Modules**: declare every file in `_worker.js/` (`modules: [{ type: "ESModule", path }]` with `modulesRoot`). Miniflare cannot follow the dynamic imports in the bundle by itself.
+- **`ASSETS`**: a service binding that returns the static files in `dist/` (`/about` from `about.html`, `/` from `index.html`) and a 404 for unknown paths. The adapter does not read `_routes.json`, which only matters on Pages.
+- **Bindings**: your variables, KV namespaces and so on, as Miniflare options.
+- **`cf-connecting-ip`**: `Astro.clientAddress` is read from this header, which Cloudflare sets on every request. Without it, pages that use `Astro.clientAddress` fail with `ClientAddressNotAvailable`, so a proxy in front of Miniflare has to set it.
+- **Compatibility date**: not newer than the workerd in your Miniflare release supports.
+
+Deploying a site to Cloudflare Pages still needs Wrangler or the Pages Git integration.
 
 ## Sessions
 
