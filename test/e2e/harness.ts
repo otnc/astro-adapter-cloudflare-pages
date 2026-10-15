@@ -105,7 +105,9 @@ export function packAdapter(): string {
 export function prepareProject(
   astroMajor: number,
   fixture: string,
-  tarball: string
+  tarball: string,
+  /** Local runtime tools installed next to the adapter. Wrangler by default; the Miniflare fixture installs only Miniflare. */
+  tools: Record<string, string> = { wrangler: "^4" }
 ): string {
   const dir = join(CACHE, `astro-${astroMajor}-${fixture}`);
   mkdirSync(dir, { recursive: true });
@@ -117,7 +119,7 @@ export function prepareProject(
     dependencies: {
       ...PACKAGE.dependencies,
       astro: `^${astroMajor}`,
-      wrangler: "^4",
+      ...tools,
     },
     allowScripts: { esbuild: true, workerd: true, sharp: true },
   };
