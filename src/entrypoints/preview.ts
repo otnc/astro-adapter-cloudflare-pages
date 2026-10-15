@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import type { CreatePreviewServer } from "astro";
 import type { MiniflareBindingOptions } from "../tooling/platform-proxy.js";
 import { getPreviewOptions } from "../utils/preview-options.js";
+import { headersFor, parseHeadersFile } from "../utils/static-headers.js";
 import { parseStaticRedirects } from "../utils/static-redirects.js";
 
 // Old enough for most Miniflare releases; a release that supports fewer dates reports its newest one, and the start is retried with it.
@@ -68,6 +69,11 @@ async function startMiniflare(
   options: MiniflareBindingOptions
 ) {
   const { Miniflare, Response } = await import("miniflare");
+  // Pages applies _headers to the static files it serves, so the stand-in binding does too.
+  const headersFile = join(outDir, "_headers");
+  const headerRules = existsSync(headersFile)
+    ? parseHeadersFile(readFileSync(headersFile, "utf-8"))
+    : [];
   const create = (compatibilityDate: string) =>
     new Miniflare({
       modules: listModules(workerDir),
@@ -88,14 +94,17 @@ async function startMiniflare(
       serviceBindings: {
         // Stands in for the static asset binding that Pages gives every _worker.js.
         ASSETS: (request: { url: string }) => {
-          const file = findFile(outDir, new URL(request.url).pathname);
+          const { pathname } = new URL(request.url);
+          const file = findFile(outDir, pathname);
           if (!file) return new Response("Not found", { status: 404 });
-          return new Response(readFileSync(file), {
-            headers: {
-              "content-type":
-                CONTENT_TYPES[extname(file)] ?? "application/octet-stream",
-            },
-          });
+          const headers: Record<string, string> = {
+            "content-type":
+              CONTENT_TYPES[extname(file)] ?? "application/octet-stream",
+          };
+          for (const [name, value] of headersFor(headerRules, pathname)) {
+            headers[name] = value;
+          }
+          return new Response(readFileSync(file), { headers });
         },
       },
     });
