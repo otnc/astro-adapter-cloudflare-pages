@@ -1,5 +1,5 @@
+import { toMiniflareBindings } from "./miniflare-options.js";
 import type {
-  MiniflareBindingOptions,
   PlatformProxy,
   PlatformProxyOptions,
   PlatformProxyProvider,
@@ -26,22 +26,12 @@ export const miniflareProvider: PlatformProxyProvider = {
   name: "miniflare",
   async start(options: PlatformProxyOptions): Promise<PlatformProxy> {
     const { Miniflare } = await import("miniflare");
-    const { bindings, kvNamespaces, d1Databases, r2Buckets, persist } =
-      options.miniflare ?? ({} satisfies MiniflareBindingOptions);
 
     const mf = new Miniflare({
       modules: true,
       script: IDLE_WORKER,
       compatibilityDate: COMPATIBILITY_DATE,
-      ...(bindings && { bindings }),
-      ...(kvNamespaces && { kvNamespaces }),
-      ...(d1Databases && { d1Databases }),
-      ...(r2Buckets && { r2Buckets }),
-      ...(persist !== undefined && {
-        kvPersist: persist,
-        d1Persist: persist,
-        r2Persist: persist,
-      }),
+      ...toMiniflareBindings(options.miniflare ?? {}),
     });
 
     try {

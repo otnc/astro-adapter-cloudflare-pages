@@ -1,6 +1,7 @@
 import type { AstroConfig } from "astro";
 import { log, type Logger } from "../log.js";
 import { messages } from "../messages.js";
+import { PACKAGE_NAME } from "../options.js";
 import type { VitePlugin } from "./vite-plugin.js";
 import { passthroughImageService } from "astro/config";
 
@@ -9,8 +10,7 @@ export type ImageServiceOption =
 
 export const SHARP_SERVICE_ENTRYPOINT = "astro/assets/services/sharp";
 const NOOP_SERVICE_ENTRYPOINT = "astro/assets/services/noop";
-export const CLOUDFLARE_SERVICE_ENTRYPOINT =
-  "astro-adapter-cloudflare-pages/image-service";
+export const CLOUDFLARE_SERVICE_ENTRYPOINT = `${PACKAGE_NAME}/image-service`;
 
 type ImageService = ReturnType<typeof passthroughImageService>;
 
@@ -61,7 +61,7 @@ export function resolveImageSetup(
  */
 export function swapSharpInWorker(): VitePlugin {
   return {
-    name: "astro-adapter-cloudflare-pages:swap-sharp-in-worker",
+    name: `${PACKAGE_NAME}:swap-sharp-in-worker`,
     enforce: "pre",
     apply: "build",
     applyToEnvironment(environment) {
