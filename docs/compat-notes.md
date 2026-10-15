@@ -22,6 +22,10 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6.4.8, 7.3.8 | 4.20260730.0 | `miniflare` (`astro dev` with `tool: "miniflare"`, no Wrangler installed) | Pass: variables, KV, `cf`, `astro:env`, sessions | 2026-10-15 |
 | 6.4.8, 7.3.8 | 4.20260730.0 | `basic` build output run in Miniflare with an `ASSETS` service binding and no Wrangler | Pass: prerendered and on-demand pages, cookies, client address, middleware, actions, server islands, `astro:env`, sessions, 404 | 2026-10-15 |
 
+| Astro | Miniflare | Fixture | Result | Date |
+| --- | --- | --- | --- | --- |
+| 6.4.8, 7.3.8 | 4.20260730.0 | `preview` (`astro preview`, no Wrangler installed) | Pass: prerendered pages, 404, on-demand pages with bindings, client address, static redirects, request bodies, sessions in KV | 2026-10-15 |
+
 ## Open questions
 
 | # | Question | Status |
@@ -42,6 +46,8 @@ The `hybrid` fixture covers static output with on-demand pages and i18n routing,
 | 6, 7 | `createExports()` is deprecated. | The adapter uses `entrypointResolution: "auto"` and a server entrypoint that default-exports `{ fetch }`. | `basic` |
 
 ## Other findings
+
+- Astro loads the preview entrypoint with `require.resolve()` on a string, so `previewEntrypoint` must be a package specifier (`astro-adapter-cloudflare-pages/preview`); a `file:` URL fails. The entrypoint runs in the same process after `astro:config:done`, so the integration hands it the `platformProxy.miniflare` option through a process-wide slot. Miniflare's `dispatchFetch()` takes a URL and request options, not a `Request` (2026-10-15).
 
 - Miniflare cannot follow the dynamic import specifiers in the Worker bundle (`ERR_MODULE_DYNAMIC_SPEC`), so a host has to declare every file of `_worker.js/` as a module. `Astro.clientAddress` is read from `cf-connecting-ip`, which only Cloudflare sets, so a host without Cloudflare's edge must set it, or pages using `Astro.clientAddress` fail with `ClientAddressNotAvailable` (2026-10-15).
 

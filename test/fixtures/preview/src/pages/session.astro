@@ -1,0 +1,5 @@
+---
+const count = ((await Astro.session?.get("count")) ?? 0) + 1;
+Astro.session?.set("count", count);
+---
+<html><body><p id="count">{count}</p></body></html>

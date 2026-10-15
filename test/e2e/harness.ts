@@ -224,6 +224,26 @@ async function startServer(
   );
 }
 
+/** Runs `astro preview` on the build, which serves it in Miniflare. */
+export function startAstroPreview(
+  dir: string,
+  port: number
+): Promise<PagesServer> {
+  return startServer(
+    [
+      binPath(dir, "astro", "astro"),
+      "preview",
+      "--port",
+      String(port),
+      "--host",
+      "127.0.0.1",
+    ],
+    dir,
+    port,
+    "/"
+  );
+}
+
 /** Runs `astro dev`, which emulates bindings from wrangler.jsonc through the adapter's platform proxy. */
 export function startAstroDev(dir: string, port: number): Promise<PagesServer> {
   return startServer(

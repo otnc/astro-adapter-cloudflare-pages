@@ -21,4 +21,6 @@
 | `Astro.locals.runtime` is undefined with `tool: "miniflare"` | `miniflare` is not installed, or the binding is missing from `platformProxy.miniflare` | Install `miniflare` as a dev dependency and declare every binding in `platformProxy.miniflare`; it does not read Wrangler or `cf` config files. |
 | `ClientAddressNotAvailable` when running the build in Miniflare or another host | `Astro.clientAddress` is read from the `cf-connecting-ip` header, which only Cloudflare sets | Set the header in the proxy in front of the host, or avoid `Astro.clientAddress` there. |
 | Miniflare cannot load the Worker (`ERR_MODULE_DYNAMIC_SPEC`) | The bundle contains dynamic imports that Miniflare cannot follow | Declare every file of `_worker.js/` in Miniflare's `modules` option with `modulesRoot`. |
+| `astro preview` says "does not support the preview command" | An adapter version before 0.2.0 | Update the adapter. |
+| `astro preview` logs "No bindings are configured" and pages cannot read `env` | The preview takes bindings from `platformProxy.miniflare` only | Declare them there, or use `wrangler pages dev dist`. |
 | `cloudflare.config.ts` bindings missing in `astro dev` | The `cf` CLI has no local runtime API yet, so the adapter uses Wrangler's | Declare development bindings in a Wrangler config as well. |
