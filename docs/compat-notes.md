@@ -10,6 +10,8 @@ The e2e tests (`npm run test:e2e`) install the packed adapter into an isolated p
 | --- | --- | --- | --- | --- |
 | 6.4.8 | 4.151.0 | `basic`, `hybrid`, `images`, `images-cloudflare`, `headers` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
 | 7.3.8 | 4.151.0 | `basic`, `hybrid`, `advanced`, `images`, `images-cloudflare`, `headers` | Pass (`wrangler pages dev` and `astro dev`) | 2026-10-15 |
+| 6.4.8 | 4.166.0 | All e2e fixtures, with Miniflare 4.20260730.0 and 5.20261119.0-beta | Pass (CI on pull request #42) | 2026-11-21 |
+| 7.4.13 | 4.166.0 | All e2e fixtures, with Miniflare 4.20260730.0 and 5.20261119.0-beta | Pass (CI on pull request #42) | 2026-11-21 |
 
 The `hybrid` fixture covers static output with on-demand pages and i18n routing, and the `advanced` fixture covers Advanced Routing with `src/fetch.ts` (Astro 7 only). The `basic` fixture covers middleware, actions, server islands, a prerendered page, an on-demand page, a dynamic route, an API endpoint, a prerendered 404 page, a public file, static and dynamic redirects, `astro:env` secrets, cookies, the client address, `Astro.locals.runtime` and `Astro.locals.cfContext`, and sessions in KV. It is not deployed to a real Pages project by CI; a real deployment is a manual release check.
 

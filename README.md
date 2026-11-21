@@ -19,7 +19,7 @@ This is an **unofficial, community** adapter. It is not affiliated with or endor
 
 | Astro | Status |
 | --- | --- |
-| 7 | Tested (7.3.8) |
+| 7 | Tested (7.3.8 and 7.4.13) |
 | 6 | Tested (6.4.8) |
 | 5 | Not supported. Use `@astrojs/cloudflare` v12. |
 | 8 and later | Not tested yet. The build fails with an explanation unless you opt in with `unsafe.allowUntestedAstro`. |
