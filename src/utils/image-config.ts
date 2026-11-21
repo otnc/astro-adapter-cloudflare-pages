@@ -21,6 +21,13 @@ interface ImageSetup {
   swapSharpInWorker: boolean;
 }
 
+type ImageServiceSetting = AstroConfig["image"]["service"];
+
+/** The entrypoint of the service that runs in the Worker. Astro 7.4 accepts `{ build, runtime }`, where `runtime` serves on-demand pages. */
+export function workerImageEntrypoint(service: ImageServiceSetting): string {
+  return "runtime" in service ? service.runtime.entrypoint : service.entrypoint;
+}
+
 /**
  * Decides the image service for an option. sharp cannot run in workerd, so on-demand pages never use it; `"compile"` keeps it for prerendered pages, which Astro 6 and 7 render in Node.js.
  */
@@ -31,7 +38,7 @@ export function resolveImageSetup(
   logger: Logger
 ): ImageSetup {
   const usesSharp =
-    config.image.service.entrypoint === SHARP_SERVICE_ENTRYPOINT;
+    workerImageEntrypoint(config.image.service) === SHARP_SERVICE_ENTRYPOINT;
   const keep: ImageSetup = { service: undefined, swapSharpInWorker: false };
 
   switch (option ?? "compile") {

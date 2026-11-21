@@ -25,8 +25,11 @@ const COMPATIBILITY_DATE = "2025-01-01";
  */
 export const miniflareProvider: PlatformProxyProvider = {
   name: "miniflare",
-  async start(options: PlatformProxyOptions): Promise<PlatformProxy> {
-    const { create } = await loadMiniflare();
+  async start(
+    options: PlatformProxyOptions,
+    root: URL
+  ): Promise<PlatformProxy> {
+    const { create } = await loadMiniflare(root);
 
     const mf = create({
       modules: true,

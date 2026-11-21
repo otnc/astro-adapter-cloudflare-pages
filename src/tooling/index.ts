@@ -32,18 +32,19 @@ export function detectTool(option: ToolOption, root: URL): Tool {
 /**
  * Starts the local Cloudflare runtime for `astro dev`, or returns `undefined` when it cannot.
  *
- * The `cf` CLI (1.0.0-beta.17) has no programmatic local runtime yet, so `cf` projects use Wrangler's runtime when Wrangler is installed. `tool: "miniflare"` starts Miniflare directly instead, without Wrangler.
+ * The `cf` CLI (checked up to 1.0.0-rc.2) has no programmatic local runtime yet, so `cf` projects use Wrangler's runtime when Wrangler is installed. `tool: "miniflare"` starts Miniflare directly instead, without Wrangler.
  */
 export async function startPlatformProxy(
   tool: Tool,
   options: PlatformProxyOptions,
+  root: URL,
   logger: Logger
 ): Promise<PlatformProxy | undefined> {
   const useMiniflare = tool === "miniflare";
   try {
     const proxy = await (
       useMiniflare ? miniflareProvider : wranglerProvider
-    ).start(options);
+    ).start(options, root);
     if (tool === "cf") {
       log.warn(logger, messages.cfRuntimeUnavailable);
     }

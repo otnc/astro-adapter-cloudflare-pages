@@ -27,7 +27,7 @@ const createPreviewServer: CreatePreviewServer = async (params) => {
   if (!options || !hasBindings(options)) {
     log.warn(logger, messages.noPreviewBindings);
   }
-  const mf = await startWorker(workerDir, outDir, options ?? {});
+  const mf = await startWorker(workerDir, outDir, options ?? {}, params.root);
 
   const redirectsFile = join(outDir, "_redirects");
   const redirects = existsSync(redirectsFile)
