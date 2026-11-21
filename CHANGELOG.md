@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. This file is generated from commit messages by [git-cliff](https://git-cliff.org) when the `release` workflow runs.
 
+## [0.3.1](https://github.com/otnc/astro-adapter-cloudflare-pages/releases/tag/v0.3.1) - 2026-11-21
+
+### Bug fixes
+
+- Support Astro 7.4, cf 0.0.4 and later, and Miniflare 5 betas (#42)
+
 ## [0.3.0](https://github.com/otnc/astro-adapter-cloudflare-pages/releases/tag/v0.3.0) - 2026-10-15
 
 ### Features
@@ -52,6 +58,7 @@ All notable changes to this project are documented here. This file is generated 
 - Correct cf CLI support and plan for life after Wrangler (#11)
 - Record the real Pages deployment and wrangler's --force requirement (#15)
 
+[0.3.1]: https://github.com/otnc/astro-adapter-cloudflare-pages/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/otnc/astro-adapter-cloudflare-pages/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/otnc/astro-adapter-cloudflare-pages/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/otnc/astro-adapter-cloudflare-pages/releases/tag/v0.1.0
