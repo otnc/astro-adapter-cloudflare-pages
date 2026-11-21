@@ -51,4 +51,28 @@ describe("resolveImageSetup", () => {
       resolveImageSetup("compile", configWith("my-service"), "build", logger)
     ).toEqual({ service: undefined, swapSharpInWorker: false });
   });
+
+  it("reads the runtime service of Astro 7.4 build and runtime targets", () => {
+    const targets = (runtime: string) =>
+      ({
+        image: {
+          service: {
+            build: { entrypoint: SHARP_SERVICE_ENTRYPOINT, config: {} },
+            runtime: { entrypoint: runtime, config: {} },
+          },
+        },
+      }) as unknown as AstroConfig;
+    expect(
+      resolveImageSetup(
+        "compile",
+        targets(SHARP_SERVICE_ENTRYPOINT),
+        "build",
+        logger
+      ).swapSharpInWorker
+    ).toBe(true);
+    expect(
+      resolveImageSetup("compile", targets("my-cdn"), "build", logger)
+        .swapSharpInWorker
+    ).toBe(false);
+  });
 });

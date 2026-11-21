@@ -101,7 +101,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.20.5",
     "@vitest/coverage-v8": "^5.0.1",
-    "astro": "^7.3.8",
+    "astro": "^7.4.13",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
@@ -114,7 +114,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2",
     "vitest": "^5.0.1",
-    "wrangler": "^4.151.0"
+    "wrangler": "^4.166.0"
   },
   "allowScripts": {
     "esbuild": true,
