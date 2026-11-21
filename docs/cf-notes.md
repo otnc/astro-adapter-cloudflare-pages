@@ -1,6 +1,6 @@
 # Notes on the `cf` CLI and life after Wrangler
 
-Cloudflare's [`cf`](https://www.npmjs.com/package/cf) CLI is presented as the next version of Wrangler. This file records what it can and cannot do for Cloudflare Pages, and how the adapter can keep working if Wrangler stops being an option. Checked with `cf@1.0.0-beta.17` (the latest release) and the official docs on 2026-10-15.
+Cloudflare's [`cf`](https://www.npmjs.com/package/cf) CLI is presented as the next version of Wrangler. This file records what it can and cannot do for Cloudflare Pages, and how the adapter can keep working if Wrangler stops being an option. Checked with `cf@1.0.0-beta.17` and the official docs on 2026-10-15, and again with `cf@1.0.0-rc.2` (the latest release) on 2026-11-21, which gave the same answers.
 
 ## Findings
 
@@ -11,14 +11,14 @@ Cloudflare's [`cf`](https://www.npmjs.com/package/cf) CLI is presented as the ne
 | Can Pages be deployed through the public API alone? | Not completely. Creating a deployment is documented (a `manifest` of file hashes plus `_worker.js` or `_worker.bundle`, `_routes.json`, `_redirects` and `_headers`), but uploading the static files uses endpoints that only Wrangler calls and that are not in the public API or docs (`/pages/projects/{name}/upload-token`, `/pages/assets/check-missing`, `/pages/assets/upload`, `/pages/assets/upsert-hashes`). |
 | Which config file does `cf` read? | `cloudflare.config.ts`, written with `defineConfig` from `cf/config` (re-exported from `@cloudflare/config`). The [configuration reference](https://developers.cloudflare.com/cf/projects/config-explorer/) describes Workers only; there is no Pages build output setting. Bindings accept `dev` options for local development. |
 | What does `cf deploy --prebuilt` upload? | The Build Output Specification directory `.cloudflare/output/v0/workers/<name>/` (`@cloudflare/build-output-utils`). It describes Workers, not Pages, and its authors mark it as not yet stable. |
-| Does `cf` expose a programmatic local runtime? | No. The package exports the CLI entry (`buildCli`, `main`, `runMain`) and the config helpers (`bindings`, `defineConfig`, `defineContainer`, `defineWorker`, `exports`, `triggers`). Nothing replaces Wrangler's `getPlatformProxy()`. |
+| Does `cf` expose a programmatic local runtime? | No. The package exports the CLI entry (`buildCli`, `main`, `runMain`, and `CliExit` since 1.0.0-rc.2) and the config helpers (`bindings`, `defineConfig`, `defineContainer`, `defineWorker`, `exports`, `triggers`). Nothing replaces Wrangler's `getPlatformProxy()`. |
 | Is there a public alternative to `getPlatformProxy()`? | Yes. [Miniflare](https://developers.cloudflare.com/workers/testing/miniflare/) is a documented package; `new Miniflare({ kvNamespaces, d1Databases, r2Buckets, bindings, ... })` and `getBindings()` give Node.js the same binding proxies. Miniflare does not read Wrangler or `cf` config files, so the bindings must be passed in. |
 | Is Wrangler itself moving away from Pages? | Partly. Since Wrangler 4.151, `wrangler pages project create` switches to Workers unless `--force` is passed (see [compat-notes.md](./compat-notes.md)). Deploying to an existing Pages project still works. |
 | When will Wrangler be retired? | No date. Neither the [`cf` announcement](https://blog.cloudflare.com/cf-cli-local-explorer/) nor the [`cf` docs for Wrangler users](https://developers.cloudflare.com/cf/wrangler/) give a timeline or mention Pages. |
 
 ## What the adapter does today
 
-- `cf` is an optional peer dependency (`^1.0.0-beta.17`).
+- `cf` is an optional peer dependency (`>=0.0.4 <1.0.0 || ^1.0.0-beta.0`): every release of Cloudflare's CLI from 0.0.4, the first one, through the 1.0.0 betas and release candidates and 1.x. The adapter never imports `cf`, so the range only keeps npm from rejecting any of them. `cloudflare.config.ts` exists from 0.7.0 (see [compat-notes.md](./compat-notes.md)).
 - The `tool` option (`"auto"` by default) picks `cf` when a `cloudflare.config.*` file exists, and the adapter watches that file in `astro dev`.
 - `astro dev` uses Wrangler's `getPlatformProxy()` for bindings. Bindings declared only in `cloudflare.config.*` are not available in development, and the adapter warns about it.
 - Deployment needs Wrangler (`wrangler pages deploy`) or the Pages Git integration, which builds and deploys in Cloudflare without any CLI on the user's side.
