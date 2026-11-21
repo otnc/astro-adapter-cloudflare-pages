@@ -37,13 +37,14 @@ export function detectTool(option: ToolOption, root: URL): Tool {
 export async function startPlatformProxy(
   tool: Tool,
   options: PlatformProxyOptions,
+  root: URL,
   logger: Logger
 ): Promise<PlatformProxy | undefined> {
   const useMiniflare = tool === "miniflare";
   try {
     const proxy = await (
       useMiniflare ? miniflareProvider : wranglerProvider
-    ).start(options);
+    ).start(options, root);
     if (tool === "cf") {
       log.warn(logger, messages.cfRuntimeUnavailable);
     }

@@ -26,13 +26,14 @@ async function listModules(
   );
 }
 
-/** Starts the built `_worker.js` in Miniflare, with the static files behind an `ASSETS` binding. */
+/** Starts the built `_worker.js` in Miniflare, with the static files behind an `ASSETS` binding. Miniflare is resolved from the project at `root`. */
 export async function startWorker(
   workerDir: string,
   outDir: string,
-  options: MiniflareBindingOptions
+  options: MiniflareBindingOptions,
+  root: URL
 ) {
-  const { create: createMiniflare, Response } = await loadMiniflare();
+  const { create: createMiniflare, Response } = await loadMiniflare(root);
   const modules = await listModules(workerDir);
   const create = (compatibilityDate: string) =>
     createMiniflare({

@@ -12,7 +12,7 @@ import {
 
 const tarball = packAdapter();
 // Miniflare 5 renamed its options; the adapter converts the Miniflare 4 ones.
-const MINIFLARE_5 = "5.20261012.0-beta";
+const MINIFLARE_5 = "5.20261119.0-beta";
 
 describe.each(astroMajors())(
   "Astro %i: Miniflare 5 (preview and toml-config fixtures)",

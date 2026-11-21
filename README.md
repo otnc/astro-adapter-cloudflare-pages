@@ -132,7 +132,7 @@ export default defineConfig({
 });
 ```
 
-The same bindings are used by `astro preview`. Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`; Miniflare 4 and 5 both work. Data lives in memory unless you set `persist` to a directory.
+The same bindings are used by `astro preview`. Install `miniflare` (`npm install --save-dev miniflare`) instead of `wrangler`; Miniflare 4 and 5 both work. The adapter loads the Miniflare installed in your project, or the one Wrangler depends on. Miniflare 5 betas are outside the peer range, so `npm install miniflare@beta` needs `--legacy-peer-deps`; a beta that Wrangler installs needs nothing. Data lives in memory unless you set `persist` to a directory.
 
 ### Previewing the build
 

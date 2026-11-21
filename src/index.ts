@@ -182,6 +182,7 @@ export default function cloudflarePages(
               ),
             }),
           },
+          config.root,
           logger
         );
         if (!proxy) return;

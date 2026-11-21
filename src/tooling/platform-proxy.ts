@@ -42,5 +42,6 @@ export interface PlatformProxyOptions {
 
 export interface PlatformProxyProvider {
   readonly name: string;
-  start(options: PlatformProxyOptions): Promise<PlatformProxy>;
+  /** Starts the runtime for the project at `root`, where the tool is resolved from. */
+  start(options: PlatformProxyOptions, root: URL): Promise<PlatformProxy>;
 }
